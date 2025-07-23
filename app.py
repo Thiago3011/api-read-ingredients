@@ -13,7 +13,7 @@ app = Flask(__name__)
 allergy_user_items = [
     "farinha de trigo",
     "cacau em pó",
-    "BRACELETE"
+    "bracelete"
 ]
 
 @app.route('/')
@@ -26,10 +26,8 @@ def get_components():
     try:
         components_user_list = request.form.getlist('components[]')
         image_file = request.files.get('image')
-        image_text = process_image(image_file)
-        print(image_text)
-        allergy_list_checked = check_allergy_items(components_user_list, allergy_user_items)
-
+        image_text = process_image(image_file).lower()
+        allergy_list_checked = check_allergy_items(components_user_list, allergy_user_items, image_text)
         if allergy_list_checked:
             return jsonify({"Componentes alérgicos": allergy_list_checked}), 200
         else:    
@@ -39,15 +37,17 @@ def get_components():
 
         return jsonify({"error": str(error)}), 500
 
-def check_allergy_items(components_user_list, allergy_user_items):
+def check_allergy_items(components_user_list, allergy_user_items, image_text=None):
     allergy_items = []
-    not_allergy_items = []
 
     for item in components_user_list:
         if item in allergy_user_items:
             allergy_items.append(item)
-        else:
-            not_allergy_items.append(item)
+
+    if image_text:
+        for alergia in allergy_user_items:
+            if alergia.lower() in image_text and alergia not in allergy_items:
+                allergy_items.append(alergia)
 
     return allergy_items
 
