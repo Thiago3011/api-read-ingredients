@@ -17,9 +17,12 @@
       
       <p>Digite abaixo um dos componentes, e se precisar adicione mais campos no botão "Adicionar um novo componente".</p>
       
-      <form action="/" method="post" id="components-form"> 
+      <form action="/" method="post" id="components-form" enctype="multipart/form-data"> 
         <input type="text" name="components[]" placeholder="Insira um componente...">
         <button type="submit">Checar!</button>
+
+        <label for="image">Clique aqui para carregar uma imagem</label>
+        <input type="file" name="image" accept="image/*">
       </form>
       
       <button type="button" name="increase_allergy" onclick="increaseAllergy()">Adicionar um novo componente</button>
