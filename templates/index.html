@@ -6,12 +6,12 @@
     <title>Validador de alergias - Moffy</title>
 </head>
 <body>
-    <form action="/ingredients" method="post" id="ingredients-form"> 
-        <input type="text" name="ingredients[]">
+    <form action="/components" method="post" id="components-form"> 
+        <input type="text" name="components[]" placeholder="Insira um componente...">
         <button type="submit">Checar!</button>
     </form>
 
-    <button type="button" name="increase_allergy" onclick="increaseAllergy()">Adicionar uma nova alergia</button>
+    <button type="button" name="increase_allergy" onclick="increaseAllergy()">Adicionar um novo componente</button>
 
     <script src="/static/script.js"></script>
 </body>
