@@ -12,7 +12,8 @@ app = Flask(__name__)
 
 allergy_user_items = [
     "farinha de trigo",
-    "cacau em pó"
+    "cacau em pó",
+    "BRACELETE"
 ]
 
 @app.route('/')
