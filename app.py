@@ -27,7 +27,12 @@ def get_components():
         components_user_list = request.form.getlist('components[]')
         image_file = request.files.get('image')
         image_text = process_image(image_file).lower()
-        allergy_list_checked = check_allergy_items(components_user_list, allergy_user_items, image_text)
+        
+        if image_text:
+            allergy_list_checked = check_allergy_items(components_user_list, allergy_user_items, image_text)
+        else:
+            allergy_list_checked = check_allergy_items(components_user_list, allergy_user_items)
+
         if allergy_list_checked:
             return jsonify({"Componentes alérgicos": allergy_list_checked}), 200
         else:    
