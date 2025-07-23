@@ -7,11 +7,11 @@ allergy_user_items = [
     "cacau em pó"
 ]
 
-@app.route('/components')
-def index():
+@app.route('/')
+def home():
     return render_template('index.html')
 
-@app.route('/components', methods=["POST"])
+@app.route('/', methods=["POST"])
 def get_components():
 
     try:
