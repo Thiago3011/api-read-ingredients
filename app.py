@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, render_template, request
-from PIL import Image
+from PIL import Image, ExifTags
 import pytesseract
 import platform
 
@@ -53,6 +53,28 @@ def check_allergy_items(components_user_list, allergy_user_items, image_text=Non
 
 def process_image(image_file):
     image = Image.open(image_file)
+
+    # Corrige a orientação EXIF
+    try:
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation]=='Orientation':
+                break
+        exif = image._getexif()
+        if exif is not None:
+            orientation_value = exif.get(orientation, None)
+            if orientation_value == 3:
+                image = image.rotate(180, expand=True)
+            elif orientation_value == 6:
+                image = image.rotate(270, expand=True)
+            elif orientation_value == 8:
+                image = image.rotate(90, expand=True)
+    except (AttributeError, KeyError, IndexError):
+        # imagem sem EXIF
+        pass
+
+    image = image.convert('L')
+    image.thumbnail((1024, 1024))
+
     text = pytesseract.image_to_string(image)
     return text
 
