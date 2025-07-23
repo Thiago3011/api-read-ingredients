@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, render_template, request
-from PIL import Image, ExifTags
+from PIL import Image, ExifTags, ImageFilter, ImageOps
 import pytesseract
 import platform
 
@@ -26,9 +26,9 @@ def get_components():
     try:
         components_user_list = request.form.getlist('components[]')
         image_file = request.files.get('image')
-        image_text = process_image(image_file).lower()
         
-        if image_text:
+        if image_file:
+            image_text = process_image(image_file).lower()
             allergy_list_checked = check_allergy_items(components_user_list, allergy_user_items, image_text)
         else:
             allergy_list_checked = check_allergy_items(components_user_list, allergy_user_items)
@@ -42,7 +42,7 @@ def get_components():
 
         return jsonify({"error": str(error)}), 500
 
-def check_allergy_items(components_user_list, allergy_user_items, image_text=None):
+def check_allergy_items(components_user_list, allergy_user_items, image_text=""):
     allergy_items = []
 
     for item in components_user_list:
@@ -78,7 +78,16 @@ def process_image(image_file):
         pass
 
     image = image.convert('L')
+
+    # Reduz tamanho para evitar lentidão e melhorar OCR
     image.thumbnail((1024, 1024))
+    
+    # Aumenta contraste
+    image = ImageOps.autocontrast(image)
+
+    # Aplica filtro de nitidez para melhorar as bordas das letras
+    image = image.filter(ImageFilter.SHARPEN)
+
 
     text = pytesseract.image_to_string(image)
     return text
