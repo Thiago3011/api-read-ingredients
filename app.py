@@ -1,9 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
 
 ingredients_user_list = [
-    "farinha de trigo",
     "açúcar",
     "cacau em pó",
     "fermento em pó",
@@ -21,13 +20,13 @@ allergy_user_items = [
 
 @app.route('/')
 def index():
-    return "teste"
+    return render_template('index.html')
 
 @app.route('/ingredients', methods=["POST"])
 def get_ingredients():
-    allergy_list_checked, ingredients_list_checked = check_allergy_items(ingredients_user_list, allergy_user_items)
+    allergy_list_checked = check_allergy_items(ingredients_user_list, allergy_user_items)
 
-    return jsonify({"allergy_items": allergy_list_checked}, {"ingredients_list_checked": ingredients_list_checked}), 200
+    return jsonify({"allergy_items": allergy_list_checked}), 200
 
 def check_allergy_items(ingredients_user_list, allergy_user_items):
     allergy_items = []
@@ -39,7 +38,7 @@ def check_allergy_items(ingredients_user_list, allergy_user_items):
         else:
             not_allergy_items.append(item)
 
-    return allergy_items, not_allergy_items
+    return allergy_items
 
 if __name__ == "__main__":
     app.run(debug=True)

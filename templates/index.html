@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de alergias - Moffy</title>
+</head>
+<body>
+    <form action="/ingredients" method="post" id="ingredients-form"> 
+        <input type="text" name="ingredients[]">
+        <button type="submit">Checar!</button>
+    </form>
+
+    <button type="button" name="increase_allergy" onclick="increaseAllergy()">Adicionar uma nova alergia</button>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
