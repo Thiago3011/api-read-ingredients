@@ -2,6 +2,8 @@ from flask import Flask, jsonify, render_template, request
 from PIL import Image, ExifTags, ImageFilter, ImageOps
 import pytesseract
 import platform
+import pillow_heif
+pillow_heif.register_heif_opener()
 
 if platform.system() == "Windows":
     pytesseract.pytesseract.tesseract_cmd = r"C:/Program Files/Tesseract-OCR/tesseract.exe"
@@ -26,6 +28,9 @@ def get_components():
     try:
         components_user_list = request.form.getlist('components[]')
         image_file = request.files.get('image')
+
+        if not image_file or image_file.filename == '':
+            return jsonify({'error': 'Arquivo não enviado corretamente'})
         
         if image_file:
             image_text = process_image(image_file).lower()
