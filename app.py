@@ -1,7 +1,12 @@
 from flask import Flask, jsonify, render_template, request
 from PIL import Image
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesseract.exe"
+import platform
+
+if platform.system() == "Windows":
+    pytesseract.pytesseract.tesseract_cmd = r"C:/Program Files/Tesseract-OCR/tesseract.exe"
+else:
+    pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 app = Flask(__name__)
 
