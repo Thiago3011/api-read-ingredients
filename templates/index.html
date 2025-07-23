@@ -1,18 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
+
+  <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validador de alergias - Moffy</title>
-</head>
-<body>
-    <form action="/components" method="post" id="components-form"> 
+    <link rel="stylesheet" href="/static/index.css">
+  </head>
+  
+  <body>
+    <div id="container">
+
+      <img height="256" width="256" src="/static/images/irritacao-na-pele.png" alt="">
+      <h1>Vamos validar se você tem alergias moffy!</h1>
+      
+      <p>Digite abaixo um dos componentes, e se precisar adicione mais campos no botão "Adicionar um novo componente".</p>
+      
+      <form action="/components" method="post" id="components-form"> 
         <input type="text" name="components[]" placeholder="Insira um componente...">
         <button type="submit">Checar!</button>
-    </form>
+      </form>
+      
+      <button type="button" name="increase_allergy" onclick="increaseAllergy()">Adicionar um novo componente</button>
+    
+    </div>
+    
+    <script type="text/javascript" src="/static/script.js"></script>
+  </body>
 
-    <button type="button" name="increase_allergy" onclick="increaseAllergy()">Adicionar um novo componente</button>
-
-    <script src="/static/script.js"></script>
-</body>
 </html>

@@ -19,9 +19,9 @@ def get_components():
         allergy_list_checked = check_allergy_items(components_user_list, allergy_user_items)
 
         if allergy_list_checked:
-            return jsonify({"allergy_items": allergy_list_checked}), 200
+            return jsonify({"Componentes alérgicos": allergy_list_checked}), 200
         else:    
-            return jsonify({"Mensagem": "Você não é alérgico a nada!"}), 200
+            return jsonify({"Sucesso": "Você não é alérgico a nada!"}), 200
         
     except Exception as error:
 
