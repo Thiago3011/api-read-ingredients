@@ -21,9 +21,6 @@ def get_components():
         components_user_list = request.form.getlist('components[]')
         image_file = request.files.get('image')
 
-        logger.info(f"Componentes recebidos: {components_user_list}")
-
-        
         if image_file and image_file.filename:
 
             logger.info(f"📷 Nome do arquivo: {image_file.filename}")

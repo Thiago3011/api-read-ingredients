@@ -33,10 +33,11 @@ class ImageProcessor:
         """
         try:
             # Lê os bytes crus do arquivo
+            self.image_file.seek(0)
             image = PilImage.open(BytesIO(self.image_file.read()))
 
             # Corrige orientação com base nos dados EXIF
-            self._correct_orientation(image)
+            image = self._correct_orientation(image)
 
             # Converte para escala de cinza (L)
             image = image.convert('L')
@@ -47,11 +48,15 @@ class ImageProcessor:
             # Ajusta contraste automaticamente para melhorar o OCR
             image = ImageOps.autocontrast(image)
 
+            threshold = 160
+            image = image.point(lambda p: 255 if p > threshold else 0)
+
             # Aplica filtro de nitidez para melhorar definição das letras
             image = image.filter(ImageFilter.SHARPEN)
 
             # Usa pytesseract para extrair texto da imagem processada
-            text = pytesseract.image_to_string(image)
+            custom_config = r'--oem 3 --psm 6'
+            text = pytesseract.image_to_string(image, lang='por', config=custom_config)
 
             return text
 
@@ -80,5 +85,5 @@ class ImageProcessor:
                 elif orientation_value == 8:
                     image = image.rotate(90, expand=True)
         except (AttributeError, KeyError, IndexError):
-            # Se não houver EXIF ou a tag de orientação não existir, não faz nada
             pass
+        return image  # <--- IMPORTANTE retornar a imagem corrigida
