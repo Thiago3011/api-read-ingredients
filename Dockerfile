@@ -1,6 +1,12 @@
 # Usa imagem leve do Python
 FROM python:3.10-slim
 
+# Instala dependências do sistema, incluindo Tesseract
+RUN apt-get update && \
+    apt-get install -y tesseract-ocr && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Define o diretório de trabalho
 WORKDIR /app
 
