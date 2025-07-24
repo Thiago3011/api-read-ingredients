@@ -17,8 +17,6 @@ def get_components():
         image_file = request.files.get('image')
         
         if image_file and image_file.filename:
-            print("📷 Nome do arquivo:", image_file.filename)
-            print("📦 Tipo MIME:", image_file.content_type)
             image_processor = ImageProcessor(image_file)
             image_text = image_processor.process_image().lower()
 
