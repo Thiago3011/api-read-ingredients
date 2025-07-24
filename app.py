@@ -3,6 +3,11 @@ from flask import Flask, jsonify, render_template, request
 from services.image_processor import ImageProcessor
 from services.validator import ComponentsValidator
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -15,10 +20,21 @@ def get_components():
     try:
         components_user_list = request.form.getlist('components[]')
         image_file = request.files.get('image')
+
+        logger.info(f"Componentes recebidos: {components_user_list}")
+
         
         if image_file and image_file.filename:
+
+            logger.info(f"📷 Nome do arquivo: {image_file.filename}")
+            logger.info(f"📦 Tipo MIME: {image_file.content_type}")
+            image_file.stream.seek(0)  # volta para o início do arquivo, para garantir leitura correta
+
             image_processor = ImageProcessor(image_file)
             image_text = image_processor.process_image().lower()
+
+            logger.info(f"Texto extraído da imagem (preview): {image_text[:100]}")
+
 
             if not image_text or '[ERRO]' in image_text:
                 return jsonify({"error": "Não foi possível processar a imagem ou extrair texto."}), 400
@@ -35,6 +51,7 @@ def get_components():
             return jsonify({"Sucesso": "Você não é alérgico a nada!"}), 200
         
     except Exception as error:
+        logger.error(f"Erro no processamento: {error}", exc_info=True)
 
         return jsonify({"error": str(error)}), 500
 
