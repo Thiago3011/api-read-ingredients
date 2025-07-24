@@ -1,16 +1,10 @@
 from flask import Flask, jsonify, render_template, request
-import pytesseract
-import platform
-import pillow_heif
-pillow_heif.register_heif_opener()
 
 from services.image_processor import ImageProcessor
 from services.validator import ComponentsValidator
+from services.config import configure_tesseract
 
-if platform.system() == "Windows":
-    pytesseract.pytesseract.tesseract_cmd = r"C:/Program Files/Tesseract-OCR/tesseract.exe"
-else:
-    pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+configure_tesseract()
 
 app = Flask(__name__)
 
@@ -20,7 +14,6 @@ def home():
 
 @app.route('/', methods=["POST"])
 def get_components():
-
 
     try:
         components_user_list = request.form.getlist('components[]')

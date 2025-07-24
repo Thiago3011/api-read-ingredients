@@ -1,5 +1,7 @@
 from PIL import Image as PilImage, ExifTags, ImageFilter, ImageOps
 import pytesseract
+import pillow_heif
+pillow_heif.register_heif_opener()
 
 class ImageProcessor:
     """
