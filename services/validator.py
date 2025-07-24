@@ -9,14 +9,14 @@ class ComponentsValidator:
             "farinha de trigo",
             "cacau em pó",
             "bracelete",
-            "AQUA",
-            "GLYCERIN"
+            "aqua",
+            "glycerin"
         ]
 
         result_of_allergy_items = []
 
         for alergia in self.user_components:
-            if alergia in allergy_user_items:
+            if alergia.lower() in allergy_user_items:
                 result_of_allergy_items.append(alergia)
 
         if self.image_text:

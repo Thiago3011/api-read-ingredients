@@ -1,6 +1,8 @@
 from PIL import Image as PilImage, ExifTags, ImageFilter, ImageOps
 import pytesseract
 import pillow_heif
+import io
+
 pillow_heif.register_heif_opener()
 
 from services.config import configure_tesseract 
@@ -15,9 +17,9 @@ class ImageProcessor:
 
     def __init__(self, image_file):
         """
-        Inicializa o processador com o caminho do arquivo de imagem.
+        Inicializa o processador com o arquivo enviado pelo usuário.
 
-        :param image_file: caminho para o arquivo de imagem
+        :param image_file: objeto FileStorage recebido pelo Flask (request.files["image"])
         """
         self.image_file = image_file
     
@@ -28,28 +30,34 @@ class ImageProcessor:
 
         :return: texto extraído da imagem
         """
-        # Abre a imagem usando PIL
-        image = PilImage.open(self.image_file)
+        try:
+            # Lê os bytes crus do arquivo
+            image_bytes = self.image_file.read()
+            image = PilImage.open(io.BytesIO(image_bytes))
+            image.load()  # Garante que a imagem seja totalmente carregada
 
-        # Corrige orientação com base nos dados EXIF
-        self._correct_orientation(image)
+            # Corrige orientação com base nos dados EXIF
+            self._correct_orientation(image)
 
-        # Converte para escala de cinza (L)
-        image = image.convert('L')
+            # Converte para escala de cinza (L)
+            image = image.convert('L')
 
-        # Reduz o tamanho da imagem para no máximo 800x800 pixels, mantendo proporção
-        image.thumbnail((800, 800))
+            # Reduz o tamanho da imagem para no máximo 800x800 pixels, mantendo proporção
+            image.thumbnail((800, 800))
 
-        # Ajusta contraste automaticamente para melhorar o OCR
-        image = ImageOps.autocontrast(image)
+            # Ajusta contraste automaticamente para melhorar o OCR
+            image = ImageOps.autocontrast(image)
 
-        # Aplica filtro de nitidez para melhorar definição das letras
-        image = image.filter(ImageFilter.SHARPEN)
+            # Aplica filtro de nitidez para melhorar definição das letras
+            image = image.filter(ImageFilter.SHARPEN)
 
-        # Usa pytesseract para extrair texto da imagem processada
-        text = pytesseract.image_to_string(image)
+            # Usa pytesseract para extrair texto da imagem processada
+            text = pytesseract.image_to_string(image)
 
-        return text
+            return text
+
+        except Exception as e:
+            return f"[ERRO] Não foi possível processar a imagem: {str(e)}"
 
     def _correct_orientation(self, image):
         """
@@ -58,7 +66,6 @@ class ImageProcessor:
         :param image: objeto PIL Image
         """
         try:
-            # Busca o código da tag 'Orientation' no dicionário EXIF
             for orientation in ExifTags.TAGS.keys():
                 if ExifTags.TAGS[orientation] == 'Orientation':
                     break
@@ -67,13 +74,12 @@ class ImageProcessor:
             if exif is not None:
                 orientation_value = exif.get(orientation, None)
 
-                # Rotaciona a imagem conforme valor da orientação EXIF
                 if orientation_value == 3:
-                    image.rotate(180, expand=True)
+                    image = image.rotate(180, expand=True)
                 elif orientation_value == 6:
-                    image.rotate(270, expand=True)
+                    image = image.rotate(270, expand=True)
                 elif orientation_value == 8:
-                    image.rotate(90, expand=True)
+                    image = image.rotate(90, expand=True)
         except (AttributeError, KeyError, IndexError):
-            # Se imagem não tem dados EXIF ou tag Orientation, ignora
+            # Se não houver EXIF ou a tag de orientação não existir, não faz nada
             pass
