@@ -3,6 +3,10 @@ import pytesseract
 import pillow_heif
 pillow_heif.register_heif_opener()
 
+from services.config import configure_tesseract 
+
+configure_tesseract()
+
 class ImageProcessor:
     """
     Classe para processar imagens e extrair texto usando OCR (pytesseract).
