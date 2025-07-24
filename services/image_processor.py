@@ -1,7 +1,8 @@
 from PIL import Image as PilImage, ExifTags, ImageFilter, ImageOps
 import pytesseract
 import pillow_heif
-import io
+from io import BytesIO
+
 
 pillow_heif.register_heif_opener()
 
@@ -32,9 +33,7 @@ class ImageProcessor:
         """
         try:
             # Lê os bytes crus do arquivo
-            image_bytes = self.image_file.read()
-            image = PilImage.open(io.BytesIO(image_bytes))
-            image.load()  # Garante que a imagem seja totalmente carregada
+            image = PilImage.open(BytesIO(self.image_file.read()))
 
             # Corrige orientação com base nos dados EXIF
             self._correct_orientation(image)
