@@ -30,7 +30,7 @@ def get_components():
             image_processor = ImageProcessor(image_file)
             image_text = image_processor.process_image().lower()
 
-            logger.info(f"Texto extraído da imagem (preview): {image_text[:100]}")
+            logger.info(f"Texto extraído da imagem (preview): {image_text[:10000]}")
 
 
             if not image_text or '[ERRO]' in image_text:

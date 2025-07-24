@@ -2,7 +2,8 @@ from PIL import Image as PilImage, ExifTags, ImageFilter, ImageOps
 import pytesseract
 import pillow_heif
 from io import BytesIO
-
+from spellchecker import SpellChecker  # pip install pyspellchecker
+import os
 
 pillow_heif.register_heif_opener()
 
@@ -11,64 +12,46 @@ from services.config import configure_tesseract
 configure_tesseract()
 
 class ImageProcessor:
-    """
-    Classe para processar imagens e extrair texto usando OCR (pytesseract).
-    Aplica correções de orientação, ajustes de contraste e nitidez para melhorar o resultado.
-    """
-
-    def __init__(self, image_file):
+    def __init__(self, image_file, save_path='processed_images/imagem_processada.png'):
         """
-        Inicializa o processador com o arquivo enviado pelo usuário.
-
-        :param image_file: objeto FileStorage recebido pelo Flask (request.files["image"])
+        :param image_file: FileStorage do Flask (request.files["image"])
+        :param save_path: caminho para salvar a imagem processada localmente (opcional, default para salvar)
         """
         self.image_file = image_file
+        self.save_path = save_path
     
     def process_image(self):
-        """
-        Abre a imagem, corrige a orientação com base no EXIF, converte para escala de cinza,
-        redimensiona, aplica contraste e nitidez, e realiza OCR para extrair texto.
-
-        :return: texto extraído da imagem
-        """
         try:
-            # Lê os bytes crus do arquivo
             self.image_file.seek(0)
             image = PilImage.open(BytesIO(self.image_file.read()))
 
-            # Corrige orientação com base nos dados EXIF
             image = self._correct_orientation(image)
-
-            # Converte para escala de cinza (L)
             image = image.convert('L')
-
-            # Reduz o tamanho da imagem para no máximo 800x800 pixels, mantendo proporção
             image.thumbnail((800, 800))
-
-            # Ajusta contraste automaticamente para melhorar o OCR
             image = ImageOps.autocontrast(image)
 
             threshold = 160
             image = image.point(lambda p: 255 if p > threshold else 0)
-
-            # Aplica filtro de nitidez para melhorar definição das letras
             image = image.filter(ImageFilter.SHARPEN)
 
-            # Usa pytesseract para extrair texto da imagem processada
+            # Salva a imagem processada localmente, se o caminho foi fornecido (não vazio)
+            if self.save_path:
+                os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
+                image.save(self.save_path)
+
+            # Extrai texto com pytesseract
             custom_config = r'--oem 3 --psm 6'
             text = pytesseract.image_to_string(image, lang='por', config=custom_config)
 
-            return text
+            # Corrige texto extraído
+            corrected_text = self._correct_text(text)
+
+            return corrected_text
 
         except Exception as e:
             return f"[ERRO] Não foi possível processar a imagem: {str(e)}"
 
     def _correct_orientation(self, image):
-        """
-        Método interno para corrigir a orientação da imagem com base na tag EXIF 'Orientation'.
-
-        :param image: objeto PIL Image
-        """
         try:
             for orientation in ExifTags.TAGS.keys():
                 if ExifTags.TAGS[orientation] == 'Orientation':
@@ -86,4 +69,64 @@ class ImageProcessor:
                     image = image.rotate(90, expand=True)
         except (AttributeError, KeyError, IndexError):
             pass
-        return image  # <--- IMPORTANTE retornar a imagem corrigida
+        return image
+
+    def _correct_text(self, text):
+        spell = SpellChecker(language='pt')
+
+        custom_words = [
+            "aqua",
+            "water",
+            "glycerin",
+            "cetyl alcohol",
+            "parfum",
+            "fragrance",
+            "glyceryl stearate" # parei aqui de editar
+            "stearate",
+            "dimethicone",
+            "butyrospermum",
+            "dicaprylyl",
+            "carbomer",
+            "caprylyl",
+            "glicol",
+            "disodium",
+            "chenopodium",
+            "quinoa",
+            "ethyl",
+            "esters",
+            "alpha-isomethyl",
+            "ionone",
+            "benzyl",
+            "salicylate",
+            "cinnamyl",
+            "citral",
+            "citronellol",
+            "coumarin",
+            "geraniol",
+            "hexyl",
+            "cinnamal",
+            "hydroxycitronellal",
+            "limonene",
+            "linalool",
+            "bioester",
+            # mais aqui
+        ]
+
+        for w in custom_words:
+            spell.word_frequency.add(w.lower())
+
+        words = text.split()
+        corrected_words = []
+        for w in words:
+            if len(w) > 3 and w.lower() not in spell:
+                corr = spell.correction(w)
+                corrected_words.append(corr if corr else w)
+            else:
+                corrected_words.append(w)
+
+        return ' '.join(corrected_words)
+
+    # Exemplo de uso:
+    # processor = ImageProcessor(request.files["image"])
+    # texto = processor.process_image()
+    # print(texto)
