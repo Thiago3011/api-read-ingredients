@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: moffy
-    env: docker
-    plan: free
-    dockerfilePath: ./Dockerfile
-    branch: main
-    rootDir: .

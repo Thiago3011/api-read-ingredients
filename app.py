@@ -87,7 +87,7 @@ def process_image(image_file):
     image = image.convert('L')
 
     # Reduz tamanho para evitar lentidão e melhorar OCR
-    image.thumbnail((1024, 1024))
+    image.thumbnail((800, 800))
     
     # Aumenta contraste
     image = ImageOps.autocontrast(image)
