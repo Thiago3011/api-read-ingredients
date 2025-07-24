@@ -2,9 +2,6 @@ from flask import Flask, jsonify, render_template, request
 
 from services.image_processor import ImageProcessor
 from services.validator import ComponentsValidator
-from services.config import configure_tesseract
-
-configure_tesseract()
 
 app = Flask(__name__)
 
@@ -20,6 +17,8 @@ def get_components():
         image_file = request.files.get('image')
         
         if image_file and image_file.filename:
+            print("📷 Nome do arquivo:", image_file.filename)
+            print("📦 Tipo MIME:", image_file.content_type)
             image_processor = ImageProcessor(image_file)
             image_text = image_processor.process_image().lower()
 
