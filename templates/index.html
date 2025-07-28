@@ -19,15 +19,19 @@
       
       <form action="/" method="post" id="components-form" enctype="multipart/form-data"> 
         <input type="text" name="components[]" placeholder="Insira um componente...">
-        <button type="submit">Checar!</button>
-
+        <div class="loader" style="display: none;" id="loader"></div>
+        <button type="submit" id="submit-check">Checar!</button>
+        
         <label for="image">Clique aqui para carregar uma imagem</label>
         <input type="file" name="image" id="imageInput" accept="image/*">
       </form>
       
       <button type="button" name="increase_allergy" onclick="increaseAllergy()">Adicionar um novo componente</button>
-    
+      
+      
     </div>
+
+
     
     <script type="text/javascript" src="/static/script.js"></script>
   </body>
