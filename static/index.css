@@ -38,7 +38,7 @@ ul {
 }
 
 ul li {
-  align-items: center;
+  text-align: left;
   opacity: 0.7;
 }
 
