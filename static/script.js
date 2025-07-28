@@ -4,6 +4,7 @@ const btnAdd = document.querySelector("button[name='increase_allergy']");
 const imageLabel = document.querySelector("label[for='image']");
 const imageInput = document.getElementById("imageInput");
 const loader = document.getElementById("loader");
+const pElement = document.querySelector("p");
 
 // Função para adicionar mais inputs
 function increaseAllergy() {
@@ -33,6 +34,9 @@ btnSubmit.addEventListener("click", function (event) {
   // Troca texto do botão e desativa
   btnSubmit.innerText = "Checando...";
   btnSubmit.disabled = true;
+
+  // esconde o parágrafo
+  pElement.style.display = "none";
 
   // Mostra loader
   loader.style.display = "grid";
