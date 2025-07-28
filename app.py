@@ -43,7 +43,7 @@ def get_components():
             allergy_list_checked = components_validator.check_allergy_items()
 
         if allergy_list_checked:
-            return jsonify({"Componentes alérgicos": allergy_list_checked}), 200
+            return render_template('result.html', allergy_list=allergy_list_checked)
         else:    
             return jsonify({"Sucesso": "Você não é alérgico a nada!"}), 200
         

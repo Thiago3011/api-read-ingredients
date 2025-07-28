@@ -21,9 +21,29 @@ h1 {
   opacity: 0.9;
 }
 
+h2 {
+  margin: 20px 0 20px 0;
+  opacity: 0.7;
+}
+
 p {
   margin-bottom: 40px;
   opacity: 0.7;
+}
+
+ul {
+  list-style-position: inside;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+ul li {
+  align-items: center;
+  opacity: 0.7;
+}
+
+ul li::marker {
+  color: blueviolet;
 }
 
 input, button {
@@ -38,11 +58,12 @@ input, button {
   margin-bottom: 20px;
 }
 
-button {
+button, a {
   border: none;
   background-color: blueviolet;
   color: white;
   transition: filter .2s;
+  text-decoration: none;
 }
 
 button:hover {

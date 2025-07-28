@@ -33,7 +33,6 @@ btnSubmit.addEventListener("click", function (event) {
 
   // Troca texto do botão e desativa
   btnSubmit.innerText = "Checando...";
-  btnSubmit.disabled = true;
 
   // esconde o parágrafo
   pElement.style.display = "none";

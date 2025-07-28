@@ -2,7 +2,7 @@ from PIL import Image as PilImage, ExifTags, ImageFilter, ImageOps
 import pytesseract
 import pillow_heif
 from io import BytesIO
-from spellchecker import SpellChecker  # pip install pyspellchecker
+from spellchecker import SpellChecker
 import os
 
 pillow_heif.register_heif_opener()
@@ -15,10 +15,8 @@ class ImageProcessor:
     def __init__(self, image_file, save_path='processed_images/imagem_processada.png'):
         """
         :param image_file: FileStorage do Flask (request.files["image"])
-        :param save_path: caminho para salvar a imagem processada localmente (opcional, default para salvar)
         """
         self.image_file = image_file
-        self.save_path = save_path
     
     def process_image(self):
         try:
@@ -33,11 +31,6 @@ class ImageProcessor:
             threshold = 160
             image = image.point(lambda p: 255 if p > threshold else 0)
             image = image.filter(ImageFilter.SHARPEN)
-
-            # Salva a imagem processada localmente, se o caminho foi fornecido (não vazio)
-            if self.save_path:
-                os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
-                image.save(self.save_path)
 
             # Extrai texto com pytesseract
             custom_config = r'--oem 3 --psm 6'
@@ -81,35 +74,8 @@ class ImageProcessor:
             "cetyl alcohol",
             "parfum",
             "fragrance",
-            "glyceryl stearate" # parei aqui de editar
-            "stearate",
-            "dimethicone",
-            "butyrospermum",
-            "dicaprylyl",
-            "carbomer",
-            "caprylyl",
-            "glicol",
-            "disodium",
-            "chenopodium",
-            "quinoa",
-            "ethyl",
-            "esters",
-            "alpha-isomethyl",
-            "ionone",
-            "benzyl",
-            "salicylate",
-            "cinnamyl",
-            "citral",
-            "citronellol",
-            "coumarin",
-            "geraniol",
-            "hexyl",
-            "cinnamal",
-            "hydroxycitronellal",
-            "limonene",
-            "linalool",
-            "bioester",
-            # mais aqui
+            "glyceryl stearate",
+            "ingredientes",
         ]
 
         for w in custom_words:
@@ -125,8 +91,3 @@ class ImageProcessor:
                 corrected_words.append(w)
 
         return ' '.join(corrected_words)
-
-    # Exemplo de uso:
-    # processor = ImageProcessor(request.files["image"])
-    # texto = processor.process_image()
-    # print(texto)
