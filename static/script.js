@@ -1,10 +1,8 @@
 const allergyForm = document.getElementById("components-form");
 const btnSubmit = document.getElementById("submit-check");
 const btnAdd = document.querySelector("button[name='increase_allergy']");
-const imageLabel = document.querySelector("label[for='image']");
-const imageInput = document.getElementById("imageInput");
 const loader = document.getElementById("loader");
-const pElement = document.querySelector("p");
+const fileNameSpan = document.getElementById('file-name');
 
 // Função para adicionar mais inputs
 function increaseAllergy() {
@@ -13,30 +11,56 @@ function increaseAllergy() {
   newInput.type = "text";
   newInput.placeholder = "Insira um novo componente...";
 
-  const buttonSubmit = allergyForm.querySelector('button[type="submit"]');
-  allergyForm.insertBefore(newInput, buttonSubmit);
+  const uploadGroup = document.querySelector(".upload-group");
+  allergyForm.insertBefore(newInput, uploadGroup);
 }
 
-// Escutador para o botão "Checar!"
-btnSubmit.addEventListener("click", function (event) {
-  // Esconde todos os inputs de texto
-  document.querySelectorAll("input[name='components[]']").forEach((input) => {
-    input.style.display = "none";
+// Listener para o evento submit do form
+allergyForm.addEventListener("submit", function (event) {
+    // Verifica se algum input de texto tem valor
+  const inputs = allergyForm.querySelectorAll("input[name='components[]']");
+  const algumInputPreenchido = Array.from(inputs).some(input => input.value.trim() !== "");
+
+    // Verifica se algum arquivo foi selecionado
+  const arquivoSelecionado = imageInput.files.length > 0;
+
+  if (!algumInputPreenchido && !arquivoSelecionado) {
+    alert("Por favor, preencha pelo menos um componente ou selecione uma imagem antes de continuar.");
+    event.preventDefault(); // bloqueia o envio do form
+    return; // sai da função
+  }
+
+  // Manipula visibilidade dos elementos antes de enviar
+  allergyForm.querySelectorAll("input, label, p, button").forEach(el => {
+    if (el === btnSubmit || el === loader) {
+      el.style.display = "";
+    } else {
+      el.style.display = "none";
+    }
   });
 
-  // Esconde label e input de imagem
-  imageLabel.style.display = "none";
-  imageInput.style.display = "none";
+  if (fileNameSpan) {
+    fileNameSpan.style.display = "none";
+  }
 
-  // Esconde botão de adicionar componente
-  btnAdd.style.display = "none";
-
-  // Troca texto do botão e desativa
   btnSubmit.innerText = "Checando...";
+  btnSubmit.disabled = true;
 
-  // esconde o parágrafo
-  pElement.style.display = "none";
-
-  // Mostra loader
   loader.style.display = "grid";
+
+});
+
+// Listener para o botão adicionar componentes
+btnAdd.addEventListener("click", increaseAllergy);
+
+// Atualiza nome do arquivo selecionado
+const imageInput = document.getElementById("imageInput");
+imageInput.addEventListener('change', () => {
+  if (imageInput.files.length > 0) {
+    fileNameSpan.style.display = 'inline';
+    fileNameSpan.textContent = `Arquivo selecionado: ${imageInput.files[0].name}`;
+  } else {
+    fileNameSpan.style.display = 'none';
+    fileNameSpan.textContent = '';
+  }
 });

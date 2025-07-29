@@ -16,6 +16,47 @@ body {
   margin: 100px auto 0 auto;
 }
 
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+
+#btn-add-allergy {
+  flex: 1;
+  padding: 16px;
+  font-size: 16px;
+}
+
+.upload-group {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.upload-group label {
+  display: inline-block;
+  padding: 16px 24px;
+  background-color: blueviolet;
+  color: white;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: filter 0.2s;
+  margin-bottom: 20px;
+}
+
+.upload-group label:hover {
+  filter: brightness(1.2);
+}
+
+#imageInput {
+  display: none;
+}
+
+.upload-group input {
+  font-size: 16px;
+  background-color: black;
+}
+
 h1 {
   margin: 40px 0 10px 0;
   opacity: 0.9;
