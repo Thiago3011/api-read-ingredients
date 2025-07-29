@@ -26,8 +26,8 @@ allergyForm.addEventListener("submit", function (event) {
 
   if (!algumInputPreenchido && !arquivoSelecionado) {
     alert("Por favor, preencha pelo menos um componente ou selecione uma imagem antes de continuar.");
-    event.preventDefault(); // bloqueia o envio do form
-    return; // sai da função
+    event.preventDefault(); 
+    return; 
   }
 
   // Manipula visibilidade dos elementos antes de enviar
