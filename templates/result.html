@@ -1,31 +1,60 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validador de alergias - Moffy</title>
-    <link rel="stylesheet" href="/static/index.css">
-  </head>
-  
-  <body>
-    <div id="container">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validador de alergias - Moffy</title>
+  <link rel="stylesheet" href="/static/index.css">
+</head>
 
-      <img height="256" width="256" src="/static/images/irritacao-na-pele.png" alt="">
-      <h1>Checagem concluída!</h1>
-        
+<body>
+  <div id="container">
+
+    <img height="256" width="256" src="/static/images/irritacao-na-pele.png" alt="">
+    <h1>Checagem concluída!</h1>
+
+    {% if allergy_list%}
       <h2>Lista de Itens:</h2>
       <ul>
         {% for item in allergy_list %}
           <li>{{ item }}</li>
         {% endfor %}
       </ul>
+    {% else %}
+      <p style="margin-top: 20px;">Você não é alérgico(a) a nada!!</p>
 
-      <a href="{{ url_for('home') }}"><button type="submit" id="submit-check">Realizar uma nova checagem</button></a>
-        
-    </div>
-    
-  </body>
+      <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+      <script>
+        const duration = 2000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+          confetti({
+            particleCount: 5,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 }
+          });
+          confetti({
+            particleCount: 5,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 }
+          });
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        })();
+      </script>
+    {% endif %}
+
+    <a href="{{ url_for('home') }}"><button type="submit" id="submit-check">Realizar uma nova checagem</button></a>
+
+  </div>
+
+</body>
 
 </html>
