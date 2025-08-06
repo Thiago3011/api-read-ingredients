@@ -1,8 +1,10 @@
+/* Reset básico para remover margens e ajustar box-sizing */
 * {
   margin: 0;
   box-sizing: border-box;
 }
 
+/* Estilo geral do corpo da página */
 body {
   background-color: black;
   color: white;
@@ -10,28 +12,33 @@ body {
   font-family: sans-serif;
 }
 
+/* Container centralizado e limitado em largura */
 #container {
   width: 80%;
   max-width: 400px;
   margin: 100px auto 0 auto;
 }
 
+/* Linha flexível para os inputs e botões */
 .input-row {
   display: flex;
-  gap: 10px;
+  gap: 10px; /* espaço entre os elementos */
 }
 
+/* Botão para adicionar componente: ocupa todo espaço possível na linha */
 #btn-add-allergy {
   flex: 1;
   padding: 16px;
   font-size: 16px;
 }
 
+/* Grupo de upload centralizado com margem inferior */
 .upload-group {
   text-align: center;
   margin-bottom: 20px;
 }
 
+/* Estilo do label do upload, parecendo botão */
 .upload-group label {
   display: inline-block;
   padding: 16px 24px;
@@ -44,19 +51,23 @@ body {
   margin-bottom: 20px;
 }
 
+/* Efeito hover para o label do upload */
 .upload-group label:hover {
   filter: brightness(1.2);
 }
 
+/* Input de upload escondido, pois o label age como botão */
 #imageInput {
   display: none;
 }
 
+/* Input dentro do upload-group com estilo básico */
 .upload-group input {
   font-size: 16px;
   background-color: black;
 }
 
+/* Estilo dos títulos h1 e h2 */
 h1 {
   margin: 40px 0 10px 0;
   opacity: 0.9;
@@ -67,38 +78,41 @@ h2 {
   opacity: 0.7;
 }
 
+/* Parágrafos com margem inferior e leve transparência */
 p {
   margin-bottom: 40px;
   opacity: 0.7;
 }
 
+/* Lista sem recuo e com margem inferior */
 ul {
   list-style-position: inside;
   padding: 0;
   margin-bottom: 20px;
 }
 
+/* Itens da lista alinhados à esquerda com opacidade */
 ul li {
   text-align: left;
   opacity: 0.7;
 }
 
+/* Cor do marcador da lista */
 ul li::marker {
   color: blueviolet;
 }
 
+/* Inputs e botões ocupando 100% da largura e com padding */
 input, button {
   display: block;
   width: 100%;
   padding: 20px;
   font-size: 20px;
   border-radius: 4px;
+  margin-bottom: 20px; /* margem comum para inputs e botões */
 }
 
-input, button {
-  margin-bottom: 20px;
-}
-
+/* Botões e links com estilo azul violeta, branco e sem bordas */
 button, a {
   border: none;
   background-color: blueviolet;
@@ -107,14 +121,16 @@ button, a {
   text-decoration: none;
 }
 
+/* Efeito hover para botões */
 button:hover {
   filter: brightness(1.2);
   cursor: pointer;
 }
 
+/* Loader estilizado com animação */
 .loader {
-  --c1: #23404a; /* contorno (vidro) */
-  --c2: #8a2be2; /* areia roxa */
+  --c1: #23404a; /* cor do contorno (vidro) */
+  --c2: #8a2be2; /* cor da "areia" roxa */
   width: 40px;
   height: 80px;
   border-top: 4px solid var(--c1);
@@ -126,6 +142,7 @@ button:hover {
   margin: 20px auto;
 }
 
+/* Pseudo-elementos para criar o efeito visual do loader */
 .loader::before,
 .loader::after {
   content: "";
@@ -150,6 +167,7 @@ button:hover {
   animation-name: l5-1;
 }
 
+/* Ajustes para o pseudo-elemento ::after */
 .loader::after {
   transform-origin: 50% calc(100% + 2px);
   transform: scaleY(-1);
@@ -157,11 +175,13 @@ button:hover {
   --d: 180deg;
 }
 
+/* Animação de rotação para o loader */
 @keyframes l5-0 {
   80%  { transform: rotate(0); }
   100% { transform: rotate(0.5turn); }
 }
 
+/* Animação para o efeito visual do loader */
 @keyframes l5-1 {
   10%,70%  { background-size: 100% 205%, var(--s,0) 100%; }
   70%,100% { background-position: top, center; }

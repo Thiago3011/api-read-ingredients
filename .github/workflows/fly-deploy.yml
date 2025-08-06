@@ -1,18 +1,32 @@
-# See https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
+# Workflow GitHub Actions para deploy automático na Fly.io
+# Guia oficial: https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
 
-name: Fly Deploy
+name: Fly Deploy  # Nome do workflow exibido na interface do GitHub Actions
+
 on:
   push:
     branches:
-      - main
+      - main  # Executa o workflow somente quando houver push na branch main
+
 jobs:
   deploy:
-    name: Deploy app
-    runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    name: Deploy app  # Nome da job
+    runs-on: ubuntu-latest  # Ambiente de execução (máquina virtual Ubuntu)
+
+    concurrency: deploy-group
+    # Garante que apenas uma execução do deploy do grupo 'deploy-group' aconteça por vez
+    # Evita deploys concorrentes
+
     steps:
       - uses: actions/checkout@v4
+        # Faz checkout do código do repositório na versão v4 da action oficial
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
+        # Instala a CLI do Fly.io (flyctl) para rodar comandos de deploy
+
       - run: flyctl deploy --remote-only
+        # Executa o comando de deploy do Fly.io, usando a opção --remote-only para delegar o build ao Fly.io
+
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          # Usa o token de API armazenado como segredo no GitHub para autenticação segura

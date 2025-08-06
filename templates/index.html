@@ -6,37 +6,49 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validador de alergias - Moffy</title>
+    <!-- Link para o arquivo de estilos CSS -->
     <link rel="stylesheet" href="/static/index.css">
   </head>
   
   <body>
     <div id="container">
+      <!-- Imagem ilustrativa relacionada ao tema alergias -->
+      <img height="256" width="256" src="/static/images/irritacao-na-pele.png" alt="Imagem sobre irritação na pele">
 
-      <img height="256" width="256" src="/static/images/irritacao-na-pele.png" alt="">
+      <!-- Título principal da página -->
       <h1>Vamos validar se você tem alergias moffy!</h1>
       
+      <!-- Instrução para o usuário -->
       <p>Digite abaixo um dos componentes, e se precisar adicione mais campos no botão "Adicionar um novo componente".</p>
       
+      <!-- Formulário principal que envia dados para a rota '/' via POST -->
       <form action="/" method="post" id="components-form" enctype="multipart/form-data"> 
         <div class="input-row">
+          <!-- Primeiro campo de texto para componente alergênico -->
           <input type="text" name="components[]" placeholder="Insira um componente...">
+          <!-- Botão para adicionar mais campos de componente dinamicamente -->
           <button id="btn-add-allergy" type="button" name="increase_allergy">+</button>
         </div>
 
+        <!-- Loader exibido enquanto o processamento ocorre; inicialmente oculto -->
         <div class="loader" style="display: none;" id="loader"></div>
         
+        <!-- Grupo para upload de imagem -->
         <div class="upload-group">
           <label for="imageInput">Carregar uma imagem</label>
+          <!-- Input para selecionar arquivo de imagem para OCR -->
           <input type="file" name="image" id="imageInput" accept="image/*">
+          <!-- Espaço para exibir o nome do arquivo selecionado, inicialmente oculto -->
           <span id="file-name" style="display:none; margin-left:10px; color: white; opacity: 0.7;"></span>
         </div>
 
+        <!-- Botão para enviar o formulário -->
         <button type="submit" id="submit-check">Checar!</button>
-        
       </form>
       
     </div>
     
+    <!-- Inclusão do script JavaScript que controla a interação do formulário -->
     <script type="text/javascript" src="/static/script.js"></script>
   </body>
 

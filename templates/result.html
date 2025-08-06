@@ -6,30 +6,40 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Validador de alergias - Moffy</title>
+  <!-- Link para o arquivo de estilos CSS -->
   <link rel="stylesheet" href="/static/index.css">
 </head>
 
 <body>
   <div id="container">
 
-    <img height="256" width="256" src="/static/images/irritacao-na-pele.png" alt="">
+    <!-- Imagem ilustrativa relacionada ao tema alergias -->
+    <img height="256" width="256" src="/static/images/irritacao-na-pele.png" alt="Imagem sobre irritação na pele">
+
+    <!-- Título principal da página -->
     <h1>Checagem concluída!</h1>
 
-    {% if allergy_list%}
+    <!-- Verifica se há itens alergênicos encontrados -->
+    {% if allergy_list %}
       <h2>Lista de Itens:</h2>
       <ul>
+        <!-- Loop para listar cada item alergênico encontrado -->
         {% for item in allergy_list %}
           <li>{{ item }}</li>
         {% endfor %}
       </ul>
     {% else %}
+      <!-- Mensagem exibida quando não há alergias detectadas -->
       <p style="margin-top: 20px;">Você não é alérgico(a) a nada!!</p>
 
+      <!-- Script externo para exibir animação de confete -->
       <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
       <script>
+        // Duração da animação em milissegundos
         const duration = 2000;
         const end = Date.now() + duration;
 
+        // Função recursiva que cria o efeito de confete nas laterais da tela
         (function frame() {
           confetti({
             particleCount: 5,
@@ -44,6 +54,7 @@
             origin: { x: 1 }
           });
 
+          // Continua a animação até o tempo definido acabar
           if (Date.now() < end) {
             requestAnimationFrame(frame);
           }
@@ -51,7 +62,10 @@
       </script>
     {% endif %}
 
-    <a href="{{ url_for('get_components') }}"><button type="submit" id="submit-check">Realizar uma nova checagem</button></a>
+    <!-- Botão para voltar à página inicial e fazer nova checagem -->
+    <a href="{{ url_for('get_components') }}">
+      <button type="submit" id="submit-check">Realizar uma nova checagem</button>
+    </a>
 
   </div>
 

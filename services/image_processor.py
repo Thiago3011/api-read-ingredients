@@ -1,36 +1,57 @@
+"""
+    Módulo responsável por processar as imagens recebidas, e retornar o texto extraído e corrigido.
+    Utiliza as bibliotecas Pillow e PIL para manipulação de imagens e pytesseract para OCR.
+"""
+
+# importações de bibliotecas necessárias nos tratamentos
 from PIL import Image as PilImage, ExifTags, ImageFilter, ImageOps
 import pytesseract
-import pillow_heif
 from io import BytesIO
 from spellchecker import SpellChecker
-import os
 
+# importando a biblioteca pillow_heif para suportar imagens HEIC
+import pillow_heif
 pillow_heif.register_heif_opener()
 
+# importando o config.py para configurar o pytesseract
 from services.config import configure_tesseract 
-
 configure_tesseract()
 
 class ImageProcessor:
-    def __init__(self, image_file, save_path='processed_images/imagem_processada.png'):
+    def __init__(self, image_file):
         """
-        :param image_file: FileStorage do Flask (request.files["image"])
+            Inicializa o objeto ImageProcessor com um arquivo de imagem.
+
+            Args:
+                image_file (FileStorage): Imagem recebida via upload.
         """
         self.image_file = image_file
     
     def process_image(self):
+        """
+            Executa o pipeline de processamento da imagem:
+
+            - Corrige orientação com base nos metadados EXIF
+            - Converte para escala de cinza, redimensiona e binariza
+            - Realça o contraste e aplica nitidez
+            - Executa OCR com pytesseract
+            - Corrige ortografia do texto extraído
+
+            Returns:
+                str: Texto corrigido extraído da imagem, ou mensagem de erro.
+        """
         try:
-            self.image_file.seek(0)
-            image = PilImage.open(BytesIO(self.image_file.read()))
+            self.image_file.seek(0) # Reseta o ponteiro do arquivo para o início
+            image = PilImage.open(BytesIO(self.image_file.read())) # Lê a imagem do arquivo
 
-            image = self._correct_orientation(image)
-            image = image.convert('L')
-            image.thumbnail((800, 800))
-            image = ImageOps.autocontrast(image)
+            image = self._correct_orientation(image) # Corrige a orientação da imagem
+            image = image.convert('L') # Converte a imagem para escala de cinza
+            image.thumbnail((800, 800)) # Redimensiona a imagem para um tamanho máximo de 800x800 pixels
+            image = ImageOps.autocontrast(image) # Aplica contraste automático para melhorar a legibilidade
 
-            threshold = 160
-            image = image.point(lambda p: 255 if p > threshold else 0)
-            image = image.filter(ImageFilter.SHARPEN)
+            threshold = 160 # Define um limiar para binarização
+            image = image.point(lambda p: 255 if p > threshold else 0) # Binariza a imagem
+            image = image.filter(ImageFilter.SHARPEN) # Aplica um filtro de nitidez para melhorar a qualidade da imagem
 
             # Extrai texto com pytesseract
             custom_config = r'--oem 3 --psm 6'
@@ -45,6 +66,16 @@ class ImageProcessor:
             return f"[ERRO] Não foi possível processar a imagem: {str(e)}"
 
     def _correct_orientation(self, image):
+        """
+            Corrige a orientação da imagem com base nas informações EXIF,
+            ajustando rotações comuns de imagens tiradas por celulares.
+
+            Args:
+                image (PIL.Image): Imagem original.
+
+            Returns:
+                PIL.Image: Imagem com orientação corrigida.
+        """
         try:
             for orientation in ExifTags.TAGS.keys():
                 if ExifTags.TAGS[orientation] == 'Orientation':
@@ -65,6 +96,19 @@ class ImageProcessor:
         return image
 
     def _correct_text(self, text):
+
+        """
+            Corrige o texto extraído da imagem utilizando a biblioteca SpellChecker.
+
+            Adiciona palavras personalizadas ao dicionário (nomes químicos e ingredientes)
+            para evitar correções indevidas.
+
+            Args:
+                text (str): Texto cru extraído do OCR.
+
+            Returns:
+                str: Texto corrigido.
+        """
         spell = SpellChecker(language='pt')
 
         custom_words = [
