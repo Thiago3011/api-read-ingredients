@@ -22,16 +22,18 @@
       <p>Digite abaixo um dos componentes, e se precisar adicione mais campos no botão "Adicionar um novo componente".</p>
       
       <!-- Formulário principal que envia dados para a rota '/' via POST -->
-      <form action="/" method="post" id="components-form" enctype="multipart/form-data"> 
+      <form id="components-form">
         <div class="input-row">
           <!-- Primeiro campo de texto para componente alergênico -->
-          <input type="text" name="components[]" placeholder="Insira um componente...">
+          <input type="text" name="components" placeholder="Insira um componente...">
           <!-- Botão para adicionar mais campos de componente dinamicamente -->
           <button id="btn-add-allergy" type="button" name="increase_allergy">+</button>
         </div>
 
         <!-- Loader exibido enquanto o processamento ocorre; inicialmente oculto -->
         <div class="loader" style="display: none;" id="loader"></div>
+
+        <div id="result" style="display: none;"></div>
         
         <!-- Grupo para upload de imagem -->
         <div class="upload-group">

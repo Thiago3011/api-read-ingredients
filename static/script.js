@@ -12,7 +12,7 @@ const imageInput = document.getElementById("imageInput");
  */
 function increaseAllergy() {
   let newInput = document.createElement("input");
-  newInput.name = "components[]";
+  newInput.name = "components";
   newInput.type = "text";
   newInput.placeholder = "Insira um novo componente...";
 
@@ -29,9 +29,15 @@ btnAdd.addEventListener("click", increaseAllergy);
  * - Garante que pelo menos um input esteja preenchido ou uma imagem tenha sido selecionada
  * - Exibe loader e altera o botão durante o processamento
  */
-allergyForm.addEventListener("submit", function (event) {
+allergyForm.addEventListener("submit", async function (event) {
+
+  if (btnSubmit.innerText === "Checar novamente") {
+  window.location.reload();
+  return;
+}
+  event.preventDefault();
   // Verifica se algum input foi preenchido
-  const inputs = allergyForm.querySelectorAll("input[name='components[]']");
+  const inputs = allergyForm.querySelectorAll("input[name='components']");
   const algumInputPreenchido = Array.from(inputs).some(input => input.value.trim() !== "");
 
   // Verifica se um arquivo foi selecionado
@@ -40,8 +46,8 @@ allergyForm.addEventListener("submit", function (event) {
   // Exibe alerta e cancela envio se nenhum dado foi fornecido
   if (!algumInputPreenchido && !arquivoSelecionado) {
     alert("Por favor, preencha pelo menos um componente ou selecione uma imagem antes de continuar.");
-    event.preventDefault(); 
-    return; 
+    event.preventDefault();
+    return;
   }
 
   // Oculta os elementos do formulário e exibe o loader durante o envio
@@ -62,6 +68,51 @@ allergyForm.addEventListener("submit", function (event) {
   btnSubmit.innerText = "Checando...";
   btnSubmit.disabled = true;
   loader.style.display = "grid";
+
+  try {
+
+    const formData = new FormData(allergyForm);
+
+    const response = await fetch("/validation/", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+
+    const result = document.getElementById("result");
+
+    if (data.allergies.length > 0) {
+      result.innerHTML = `
+    <h2>Possíveis alergênicos encontrados:</h2>
+    <ul>
+      ${data.allergies.map(allergy => `<li>${allergy}</li>`).join("")}
+    </ul>
+  `;
+    } else {
+      result.innerHTML = `
+    <h2>Nenhum alergênico encontrado.</h2>
+  `;
+    }
+
+    loader.style.display = "none";
+    result.style.display = "block";
+
+    btnSubmit.innerText = "Checar novamente";
+    btnSubmit.disabled = false;
+
+    btnSubmit.onclick = () => {
+      window.location.reload();
+    };
+
+  } catch (error) {
+    console.error(error);
+    alert("Não foi possível realizar a validação.");
+
+    loader.style.display = "none";
+    btnSubmit.disabled = false;
+  }
+
 });
 
 /**
