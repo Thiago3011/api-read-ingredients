@@ -1,163 +1,378 @@
-# api-read-ingredients (Moffy)
+# Allergy Validator
 
-![Moffy Logo](./static/images/irritacao-na-pele.png)  
+![Allergy Validator](./static/images/irritacao-na-pele.png)
 
-Projeto desenvolvido para validar alergias a partir da leitura de ingredientes em listas ou imagens. Criado como um software real para ajudar a minha namorada, minha *Moffy* (apelido carinhoso), daí o nome do projeto.
+API para identificação de possíveis componentes alergênicos a partir de ingredientes informados manualmente ou extraídos de imagens utilizando OCR.
 
---- 
-
-## Índice
-
-- [Descrição](#descrição)  
-- [Funcionalidades](#funcionalidades)  
-- [Tecnologias Utilizadas](#tecnologias-utilizadas)  
-- [Como Funciona](#como-funciona)  
-- [Instalação](#instalação)  
-- [Uso](#uso)  
-- [Documentação do Código](#documentação-do-código)  
-- [Estrutura do Projeto](#estrutura-do-projeto)  
-- [Contribuição](#contribuição)  
-- [Licença](#licença)  
-- [Contato](#contato)  
+O projeto foi desenvolvido inicialmente para resolver um problema real e, posteriormente, revisitado com foco em organização arquitetural, testes, persistência de dados e evolução do backend.
 
 ---
 
-## Descrição
+## Sobre o projeto
 
-Este projeto foi criado para resolver um problema real: ajudar minha namorada a identificar possíveis alergias em produtos que ela consome ou utiliza. A aplicação permite ao usuário digitar manualmente os componentes (ingredientes) ou enviar uma imagem do rótulo para extração automática do texto usando OCR. Após processar as informações, o sistema verifica se há algum componente alergênico conhecido e apresenta o resultado para o usuário.
+O Allergy Validator permite que o usuário informe ingredientes manualmente ou envie uma imagem contendo uma lista de ingredientes.
+
+Quando uma imagem é enviada, o sistema utiliza OCR para extrair o texto e então verifica se existem componentes correspondentes às alergias cadastradas.
+
+O projeto está sendo reconstruído utilizando uma arquitetura mais organizada, separando responsabilidades entre API, serviços, repositórios e modelos de dados.
 
 ---
 
 ## Funcionalidades
 
-- Entrada manual de ingredientes via formulário
-- Upload de imagens para extração automática de texto (OCR)
-- Correção ortográfica do texto extraído
-- Validação dos componentes contra uma lista de alergênicos conhecidos
-- Interface web simples e responsiva
-- Animação de confete para resultados sem alergia detectada
-- Deploy automatizado via Fly.io usando GitHub Actions
+- Entrada manual de ingredientes
+- Upload de imagens
+- Extração de texto utilizando OCR
+- Processamento e correção do texto extraído
+- Cadastro de componentes relacionados a alergias
+- Validação dos ingredientes informados
+- Validação de componentes encontrados através de OCR
+- API REST com FastAPI
+- Persistência utilizando PostgreSQL
+- Testes automatizados com Pytest
+- Execução da aplicação utilizando Docker
+- Docker Compose para ambiente local com API + PostgreSQL
 
 ---
 
-## Tecnologias Utilizadas
+## Tecnologias
 
-- Python 3.11
-- Flask (backend web)
-- pytesseract (OCR)
-- Pillow e pillow_heif (manipulação de imagens)
-- pyspellchecker (correção ortográfica)
-- HTML, CSS e JavaScript (frontend)
-- Fly.io (plataforma de deploy)
-- GitHub Actions (CI/CD)
+### Backend
 
----
+- Python 3.12
+- FastAPI
+- SQLAlchemy
+- Pydantic
+- PostgreSQL
+- Psycopg
 
-## Como Funciona
+### Processamento de imagens
 
-1. O usuário pode digitar um ou mais componentes manualmente no formulário.
-2. Opcionalmente, pode enviar uma imagem do rótulo do produto.
-3. A imagem é processada pelo Tesseract OCR para extrair o texto.
-4. O texto extraído é corrigido ortograficamente para maior precisão.
-5. A lista final de componentes é comparada com uma base de dados de alergênicos.
-6. O resultado é mostrado na tela, indicando quais componentes podem causar alergia.
-7. Se nenhuma alergia for detectada, uma animação de confete é exibida como celebração.
+- Tesseract OCR
+- Pytesseract
+- Pillow
+- Pillow-Heif
+- PySpellChecker
 
----
+### Testes
 
-## Instalação
+- Pytest
 
-1. Clone este repositório:
+### Infraestrutura
 
-   ```bash
-   git clone https://github.com/Thiago3011/api-read-ingredients.git
-   cd api-read-ingredients
-   ```
+- Docker
+- Docker Compose
 
-2. Crie e ative um ambiente virtual Python (recomendado):
+### Frontend
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/macOS
-   venv\Scripts\activate     # Windows
-   ```
-
-3. Instale as dependências:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Instale o Tesseract OCR em seu sistema:
-
-   - Windows: [Download aqui](https://github.com/tesseract-ocr/tesseract/wiki)
-   - Linux: `sudo apt install tesseract-ocr`
-   - macOS: `brew install tesseract`
+- HTML
+- CSS
+- JavaScript
 
 ---
 
-## Uso
+## Arquitetura
 
-Para rodar a aplicação localmente:
+O projeto utiliza uma arquitetura organizada por responsabilidades:
+
+```text
+app/
+├── core/
+│   └── config.py
+│
+├── models/
+│   ├── allergy.py
+│   └── user.py
+│
+├── repositories/
+│   └── allergy_repository.py
+│
+├── routers/
+│   └── validation.py
+│
+├── schemas/
+│
+├── services/
+│   ├── allergy_service.py
+│   └── image_processor.py
+│
+├── database.py
+└── main.py
+```
+
+### Responsabilidades
+
+**Routers**
+
+Responsáveis pelos endpoints da API e pela comunicação entre as requisições HTTP e os serviços da aplicação.
+
+**Services**
+
+Contêm as regras de negócio e o processamento das informações.
+
+**Repositories**
+
+Responsáveis pelo acesso aos dados persistidos no banco.
+
+**Models**
+
+Representam as entidades utilizadas pelo banco de dados através do SQLAlchemy.
+
+**Core**
+
+Contém configurações centrais da aplicação.
+
+---
+
+## Como funciona
+
+O fluxo principal da aplicação pode ser representado da seguinte forma:
+
+```text
+Usuário
+   │
+   ├── Ingredientes
+   │
+   └── Imagem
+          │
+          ▼
+     FastAPI
+          │
+          ▼
+   ImageProcessor
+          │
+          ▼
+      Texto OCR
+          │
+          ▼
+   AllergyService
+          │
+          ▼
+ AllergyRepository
+          │
+          ▼
+    PostgreSQL
+          │
+          ▼
+    Resultado
+```
+
+Quando o usuário envia ingredientes manualmente, eles são encaminhados diretamente para a camada de serviço.
+
+Quando uma imagem é enviada, ela passa primeiro pelo processamento de imagem e OCR. O texto extraído então é utilizado na validação.
+
+---
+
+## Executando com Docker
+
+O projeto possui um `docker-compose.yml` que inicia a API e o PostgreSQL.
+
+### 1. Subir os containers
 
 ```bash
-python app.py
+docker compose up -d --build
 ```
 
-Depois acesse `http://localhost:5000` no navegador.
+### 2. Verificar os containers
+
+```bash
+docker compose ps
+```
+
+### 3. Acessar a aplicação
+
+Abra:
+
+```text
+http://localhost:8000
+```
+
+A documentação interativa da API está disponível em:
+
+```text
+http://localhost:8000/docs
+```
+
+### 4. Parar os containers
+
+```bash
+docker compose down
+```
 
 ---
 
-## Documentação do Código
+## Executando localmente
 
-A documentação está presente diretamente no código em forma de docstrings e comentários explicativos, incluindo:
+Também é possível executar a aplicação diretamente através de um ambiente virtual Python.
 
-- `app.py`: gerenciamento das rotas Flask e lógica principal de processamento
-- `services/config.py`: configuração do caminho do executável do Tesseract OCR
-- `services/image_processor.py`: processamento e pré-tratamento de imagens, extração e correção de texto
-- `services/validator.py`: lógica de validação dos componentes alergênicos
-- `static/script.js`: interatividade do formulário no frontend
-- `templates/index.html` e `templates/result.html`: interfaces web renderizadas com Jinja2
-- `static/index.css`: estilos visuais da aplicação
+### 1. Criar o ambiente virtual
+
+Windows:
+
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
+
+Linux/macOS:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 2. Instalar as dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configurar as variáveis de ambiente
+
+Crie um arquivo `.env`:
+
+```env
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/allergy_validator
+TESSERACT_CMD=C:/Program Files/Tesseract-OCR/tesseract.exe
+```
+
+O caminho do Tesseract deve ser ajustado de acordo com o ambiente utilizado.
+
+### 4. Inicializar os dados
+
+Para cadastrar a lista inicial de alergias:
+
+```bash
+python -m scripts.seed_allergies
+```
+
+### 5. Iniciar a API
+
+```bash
+uvicorn app.main:app --reload
+```
+
+A aplicação estará disponível em:
+
+```text
+http://localhost:8000
+```
 
 ---
 
-## Estrutura do Projeto
+## Testes
 
+Os testes automatizados podem ser executados utilizando:
+
+```bash
+pytest -q
 ```
+
+Atualmente, os testes cobrem principalmente a lógica de identificação de componentes alergênicos, incluindo:
+
+- identificação de alergênico informado manualmente;
+- componentes que não são alergênicos;
+- identificação através de texto extraído por OCR;
+- prevenção de resultados duplicados.
+
+---
+
+## API
+
+A API possui atualmente o endpoint principal:
+
+```http
+POST /validation/
+```
+
+O endpoint recebe:
+
+- componentes informados pelo usuário;
+- opcionalmente, uma imagem para processamento via OCR.
+
+A documentação interativa pode ser acessada através do Swagger:
+
+```text
+http://localhost:8000/docs
+```
+
+---
+
+## Estrutura do projeto
+
+```text
 api-read-ingredients/
 │
-├── app.py
-├── requirements.txt
+├── app/
+│   ├── core/
+│   │   └── config.py
+│   │
+│   ├── models/
+│   │   ├── allergy.py
+│   │   ├── user.py
+│   │   └── __init__.py
+│   │
+│   ├── repositories/
+│   │   ├── allergy_repository.py
+│   │   └── __init__.py
+│   │
+│   ├── routers/
+│   │   ├── validation.py
+│   │   └── __init__.py
+│   │
+│   ├── schemas/
+│   │   └── __init__.py
+│   │
+│   ├── services/
+│   │   ├── allergy_service.py
+│   │   ├── image_processor.py
+│   │   └── __init__.py
+│   │
+│   ├── database.py
+│   ├── main.py
+│   └── __init__.py
+│
+├── scripts/
+│   ├── seed_allergies.py
+│   └── __init__.py
+│
+├── static/
+│   ├── images/
+│   │   └── irritacao-na-pele.png
+│   ├── index.css
+│   └── script.js
+│
+├── templates/
+│   └── index.html
+│
+├── tests/
+│   ├── test_allergy_service.py
+│   └── __init__.py
+│
+├── .dockerignore
+├── .gitignore
+├── docker-compose.yml
+├── Dockerfile
 ├── LICENSE
 ├── README.md
-├── Dockerfile
-├── fly.toml
-├── .gitignore
-├── .dockerignore
-├── .github/
-│   └── workflows/
-│       └── fly-deploy.yml
-├── services/
-│   ├── config.py
-│   ├── image_processor.py
-│   └── validator.py
-├── static/
-│   ├── index.css
-│   ├── script.js
-│   └── images/
-│       └── irritacao-na-pele.png
-├── templates/
-    ├── index.html
-    └── result.html
-
+└── requirements.txt
 ```
 
 ---
 
-## Contribuição
+## Próximos passos
 
-Contribuições são bem-vindas! Para sugerir melhorias ou reportar bugs, abra uma issue ou envie um pull request.
+O projeto está em processo de evolução e alguns componentes serão adicionados gradualmente.
+
+Entre os próximos passos estão:
+
+- implementação de autenticação e usuários;
+- evolução das regras de validação;
+- ampliação da cobertura de testes;
+- criação de schemas específicos para a API;
+- melhorias no tratamento de erros;
+- evolução da persistência e dos relacionamentos;
+- preparação da aplicação para deploy.
 
 ---
 
@@ -167,8 +382,8 @@ Este projeto está licenciado sob a [MIT License](LICENSE).
 
 ---
 
-## Contato
+## Autor
 
-Desenvolvido por Thiago Henrique  
-Email: thiago.silva1001@outlook.com  
-GitHub: [Thiago3011](https://github.com/Thiago3011)
+**Thiago Henrique**
+
+[GitHub](https://github.com/Thiago3011)
