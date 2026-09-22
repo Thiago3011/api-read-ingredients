@@ -1,5 +1,5 @@
-# Usa imagem leve do Python
-FROM python:3.10-slim
+# Usa uma imagem leve do Python
+FROM python:3.12-slim
 
 # Instala dependências do sistema, incluindo Tesseract e idioma português
 RUN apt-get update && \
@@ -12,14 +12,17 @@ RUN apt-get update && \
 # Define o diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos do projeto para dentro do contêiner
-COPY . /app
+# Copia o arquivo de dependências primeiro
+COPY requirements.txt .
 
-# Instala dependências do projeto
+# Instala as dependências do projeto
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expõe a porta 5000 (usada pelo Flask)
-EXPOSE 5000
+# Copia o restante do projeto
+COPY . .
 
-# Comando que inicia a aplicação
-CMD ["python", "app.py"]
+# Expõe a porta da aplicação
+EXPOSE 8000
+
+# Inicia a API FastAPI
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
