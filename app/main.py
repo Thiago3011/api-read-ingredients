@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.routers.validation import router as validation_router
+from app.routers.user import router as user_router
 
 
 app = FastAPI(
@@ -14,7 +15,7 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(validation_router)
-
+app.include_router(user_router)
 
 @app.get("/")
 def root():
