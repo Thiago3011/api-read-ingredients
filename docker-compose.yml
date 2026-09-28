@@ -1,10 +1,11 @@
 services:
-
   api:
     build: .
     container_name: allergy-validator-api
     ports:
       - "8000:8000"
+    volumes:
+      - .:/app
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/allergy_validator
     depends_on:
