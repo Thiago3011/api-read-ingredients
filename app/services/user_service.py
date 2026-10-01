@@ -24,7 +24,12 @@ class UserService:
 
     def get_user(self, user_id: int) -> User:
         
-        return self.repository.get_user_by_id(user_id)
+        user = self.repository.get_user_by_id(user_id)
+        
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return user
     
     def create_user(self, new_user_data: UserCreate) -> User:
         
@@ -41,6 +46,9 @@ class UserService:
     
     def update_user(self, user_id: int, updated_user_data: UserUpdate) -> User:
         user = self.find_user(user_id)
+        
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
 
         if updated_user_data.email is not None:
             existing_user = self.find_user(
@@ -64,9 +72,12 @@ class UserService:
 
         return self.repository.update_user(user)
     
-    def delete_user(self, user_id: int) -> User:
+    def delete_user(self, user_id: int) -> dict:
         
         user = self.find_user(user_id=user_id)
+        
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
         
         return self.repository.delete_user(user)
         

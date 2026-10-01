@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
 
 class UserCreate(BaseModel):
     name: str
@@ -9,3 +9,10 @@ class UserUpdate(BaseModel):
     name: str | None = None
     email: str | None = None
     password: str | None = None
+    
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    
+    model_config = ConfigDict(from_attributes=True)
