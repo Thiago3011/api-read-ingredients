@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -30,9 +30,10 @@ def validate_components(
         image_text = image_processor.process_image()
 
         if not image_text or "[ERRO]" in image_text.upper():
-            return {
-                "error": "Não foi possível processar a imagem ou extrair texto."
-            }
+            raise HTTPException(
+                status_code=422,
+                detail="Não foi possível processar a imagem ou extrair texto."
+            )
 
     allergies = service.check_allergies(
         user_components=components,

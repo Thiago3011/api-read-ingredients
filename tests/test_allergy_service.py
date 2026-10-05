@@ -173,7 +173,7 @@ def test_should_return_error_when_image_processing_fails(
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 422
     assert response.json() == {
-        "error": "Não foi possível processar a imagem ou extrair texto."
+        "detail": "Não foi possível processar a imagem ou extrair texto."
     }
