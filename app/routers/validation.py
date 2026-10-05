@@ -6,6 +6,8 @@ from app.repositories.allergy_repository import AllergyRepository
 from app.services.allergy_service import AllergyService
 from app.services.image_processor import ImageProcessor
 
+from app.core.dependencies import get_current_user
+from app.models.user import User
 
 router = APIRouter(
     prefix="/validation",
@@ -17,7 +19,8 @@ router = APIRouter(
 def validate_components(
     components: list[str] = Form(default=[]),
     image: UploadFile | None = File(default=None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     service = AllergyService(
         AllergyRepository(db)

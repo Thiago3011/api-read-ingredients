@@ -6,6 +6,23 @@ from app.models.allergy import Allergy
 from app.repositories.allergy_repository import AllergyRepository
 from app.services.allergy_service import AllergyService
 
+def get_auth_headers(client, test_user):
+    response = client.post(
+        "/auth/login",
+        json={
+            "email": test_user["email"],
+            "password": "123456"
+        }
+    )
+
+    assert response.status_code == 200
+
+    token = response.json()["access_token"]
+
+    return {
+        "Authorization": f"Bearer {token}"
+    }
+
 
 class FakeAllergy:
     def __init__(self, name):
@@ -71,7 +88,7 @@ def test_should_not_duplicate_allergy():
 
 # Testes da API
 
-def test_should_identify_allergy_through_api(client, monkeypatch):
+def test_should_identify_allergy_through_api(client, test_user, monkeypatch):
     monkeypatch.setattr(
         AllergyRepository,
         "get_all",
@@ -85,6 +102,7 @@ def test_should_identify_allergy_through_api(client, monkeypatch):
     response = client.post(
         "/validation/",
         data={"components": "Sulfato de níquel"},
+        headers=get_auth_headers(client, test_user)
     )
 
     assert response.status_code == 200
@@ -93,7 +111,7 @@ def test_should_identify_allergy_through_api(client, monkeypatch):
     }
 
 
-def test_should_ignore_non_allergy_through_api(client, monkeypatch):
+def test_should_ignore_non_allergy_through_api(client, test_user, monkeypatch):
     monkeypatch.setattr(
         AllergyRepository,
         "get_all",
@@ -107,6 +125,7 @@ def test_should_ignore_non_allergy_through_api(client, monkeypatch):
     response = client.post(
         "/validation/",
         data={"components": "Glicerina"},
+        headers=get_auth_headers(client, test_user)
     )
 
     assert response.status_code == 200
@@ -114,7 +133,7 @@ def test_should_ignore_non_allergy_through_api(client, monkeypatch):
 
 
 def test_should_identify_allergy_from_image_through_api(
-    client, monkeypatch
+    client, test_user, monkeypatch
 ):
     monkeypatch.setattr(
         AllergyRepository,
@@ -143,6 +162,7 @@ def test_should_identify_allergy_from_image_through_api(
         files={
             "image": ("ingredientes.jpg", b"fake image", "image/jpeg")
         },
+        headers=get_auth_headers(client, test_user)
     )
 
     assert response.status_code == 200
@@ -152,7 +172,7 @@ def test_should_identify_allergy_from_image_through_api(
 
 
 def test_should_return_error_when_image_processing_fails(
-    client, monkeypatch
+    client, test_user, monkeypatch
 ):
     class FakeImageProcessor:
         def __init__(self, image_file):
@@ -171,6 +191,7 @@ def test_should_return_error_when_image_processing_fails(
         files={
             "image": ("ingredientes.jpg", b"fake image", "image/jpeg")
         },
+        headers=get_auth_headers(client, test_user)
     )
 
     assert response.status_code == 422

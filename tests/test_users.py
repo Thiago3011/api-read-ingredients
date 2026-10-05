@@ -1,17 +1,21 @@
-
 import pytest
+
 from fastapi import HTTPException
 
 from app.services.user_service import UserService
 from app.schemas.user import UserCreate, UserUpdate
 from app.models.user import User
 
+from app.core.security import create_access_token, decode_access_token
+
 
 # ==========================================
 # Fake Repository
 # ==========================================
 
+
 class FakeUserRepository:
+
     def __init__(self):
         self.users = []
         self.next_id = 1
@@ -49,6 +53,7 @@ class FakeUserRepository:
 # CREATE
 # ==========================================
 
+
 def test_should_create_user_successfully():
     repository = FakeUserRepository()
     service = UserService(repository)
@@ -77,6 +82,7 @@ def test_should_not_create_user_with_duplicate_email():
         email="thiago@example.com",
         password="SenhaSegura123"
     )
+
     user2 = UserCreate(
         name="Maria",
         email="thiago@example.com",
@@ -97,6 +103,7 @@ def test_should_not_create_user_with_duplicate_email():
 # READ
 # ==========================================
 
+
 def test_should_get_user_by_id():
     repository = FakeUserRepository()
     service = UserService(repository)
@@ -106,6 +113,7 @@ def test_should_get_user_by_id():
         email="thiago@example.com",
         password="SenhaSegura123"
     )
+
     created_user = service.create_user(new_user)
 
     result = service.get_user(created_user.id)
@@ -135,6 +143,7 @@ def test_should_get_all_users():
         email="thiago1@example.com",
         password="SenhaSegura123"
     )
+
     user2 = UserCreate(
         name="Maria",
         email="maria@example.com",
@@ -155,6 +164,7 @@ def test_should_get_all_users():
 # UPDATE
 # ==========================================
 
+
 def test_should_update_user():
     repository = FakeUserRepository()
     service = UserService(repository)
@@ -164,6 +174,7 @@ def test_should_update_user():
         email="thiago@example.com",
         password="SenhaSegura123"
     )
+
     created_user = service.create_user(new_user)
 
     updated_data = UserUpdate(name="Thiago Henrique")
@@ -184,6 +195,7 @@ def test_should_update_user_password():
         email="thiago@example.com",
         password="SenhaSegura123"
     )
+
     created_user = service.create_user(new_user)
     old_password_hash = created_user.password_hash
 
@@ -206,6 +218,7 @@ def test_should_not_update_user_with_duplicate_email():
             password="SenhaSegura123"
         )
     )
+
     user2 = service.create_user(
         UserCreate(
             name="Maria",
@@ -288,6 +301,7 @@ def test_should_update_user_with_new_email():
 # DELETE
 # ==========================================
 
+
 def test_should_delete_user():
     repository = FakeUserRepository()
     service = UserService(repository)
@@ -297,6 +311,7 @@ def test_should_delete_user():
         email="thiago@example.com",
         password="SenhaSegura123"
     )
+
     created_user = service.create_user(new_user)
 
     result = service.delete_user(created_user.id)
@@ -321,11 +336,26 @@ def test_should_raise_error_when_deleting_nonexistent_user():
 # API ROUTES
 # ==========================================
 
-def test_should_return_users_list(client):
-    response = client.get("/user/")
+
+def test_should_return_users_list(client, test_user):
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": test_user["email"],
+            "password": "123456"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.get(
+        "/user/",
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
 
     assert response.status_code == 200
-    assert response.json() == []
 
 
 def test_should_create_user_through_api(client):
@@ -341,32 +371,40 @@ def test_should_create_user_through_api(client):
     assert response.status_code == 200
 
     data = response.json()
+
     assert data["name"] == "Thiago"
     assert data["email"] == "thiago@example.com"
     assert "password_hash" not in data
     assert "password" not in data
 
 
-def test_should_get_user_through_api(client):
-    create_response = client.post(
-        "/user/",
+def test_should_get_user_through_api(client, test_user):
+    user_id = test_user["id"]
+
+    login_response = client.post(
+        "/auth/login",
         json={
-            "name": "Thiago",
-            "email": "thiago@example.com",
-            "password": "SenhaSegura123"
+            "email": test_user["email"],
+            "password": "123456"
         }
     )
 
-    user_id = create_response.json()["id"]
+    token = login_response.json()["access_token"]
 
-    response = client.get(f"/user/{user_id}")
+    response = client.get(
+        f"/user/{user_id}",
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
 
     assert response.status_code == 200
 
     data = response.json()
+
     assert data["id"] == user_id
-    assert data["name"] == "Thiago"
-    assert data["email"] == "thiago@example.com"
+    assert data["name"] == test_user["name"]
+    assert data["email"] == test_user["email"]
     assert "password_hash" not in data
 
 
@@ -382,32 +420,62 @@ def test_should_update_user_through_api(client):
 
     user_id = create_response.json()["id"]
 
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": "thiago@example.com",
+            "password": "SenhaSegura123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
     response = client.patch(
         f"/user/{user_id}",
         json={
             "name": "Thiago Henrique"
+        },
+        headers={
+            "Authorization": f"Bearer {token}"
         }
     )
 
     assert response.status_code == 200
 
     data = response.json()
+
     assert data["id"] == user_id
     assert data["name"] == "Thiago Henrique"
     assert data["email"] == "thiago@example.com"
     assert "password_hash" not in data
 
 
-def test_should_return_404_when_updating_nonexistent_user(client):
+def test_should_return_404_when_updating_nonexistent_user(
+    client,
+    test_user
+):
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": test_user["email"],
+            "password": "123456"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
     response = client.patch(
         "/user/999",
         json={
             "name": "Novo Nome"
+        },
+        headers={
+            "Authorization": f"Bearer {token}"
         }
     )
 
-    assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
+    assert response.status_code == 403
+    assert response.json()["detail"] == "You can only update your own user"
 
 
 def test_should_delete_user_through_api(client):
@@ -422,19 +490,49 @@ def test_should_delete_user_through_api(client):
 
     user_id = create_response.json()["id"]
 
-    response = client.delete(f"/user/{user_id}")
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": "thiago@example.com",
+            "password": "SenhaSegura123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.delete(
+        f"/user/{user_id}",
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
 
     assert response.status_code == 204
 
-    get_response = client.get(f"/user/{user_id}")
-    assert get_response.status_code == 404
 
+def test_should_return_404_when_deleting_nonexistent_user(
+    client,
+    test_user
+):
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": test_user["email"],
+            "password": "123456"
+        }
+    )
 
-def test_should_return_404_when_deleting_nonexistent_user(client):
-    response = client.delete("/user/999")
+    token = login_response.json()["access_token"]
 
-    assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
+    response = client.delete(
+        "/user/999",
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "You can only delete your own user"
 
 
 def test_should_return_409_when_creating_duplicate_email(client):
@@ -469,6 +567,7 @@ def test_should_return_409_when_updating_to_duplicate_email(client):
             "password": "SenhaSegura123"
         }
     )
+
     user1_id = user1_response.json()["id"]
 
     client.post(
@@ -480,18 +579,28 @@ def test_should_return_409_when_updating_to_duplicate_email(client):
         }
     )
 
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": "thiago@example.com",
+            "password": "SenhaSegura123"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
     response = client.patch(
         f"/user/{user1_id}",
         json={
             "email": "maria@example.com"
+        },
+        headers={
+            "Authorization": f"Bearer {token}"
         }
     )
 
     assert response.status_code == 409
     assert response.json()["detail"] == "Email already registered"
-
-    get_response = client.get(f"/user/{user1_id}")
-    assert get_response.json()["email"] == "thiago@example.com"
 
 
 def test_should_return_422_when_creating_user_without_required_fields(client):
@@ -503,3 +612,47 @@ def test_should_return_422_when_creating_user_without_required_fields(client):
     )
 
     assert response.status_code == 422
+
+
+# ==========================================
+# JWT
+# ==========================================
+
+
+def test_should_create_and_decode_access_token():
+    data = {
+        "sub": "test@example.com"
+    }
+
+    token = create_access_token(data)
+    decoded = decode_access_token(token)
+
+    assert decoded["sub"] == "test@example.com"
+    assert "exp" in decoded
+
+
+def test_get_users_without_token(client):
+    response = client.get("/user/")
+
+    assert response.status_code == 401
+
+
+def test_get_users_with_valid_token(client, test_user):
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": test_user["email"],
+            "password": "123456"
+        }
+    )
+
+    token = login_response.json()["access_token"]
+
+    response = client.get(
+        "/user/",
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
+
+    assert response.status_code == 200

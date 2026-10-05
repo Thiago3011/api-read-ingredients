@@ -6,6 +6,8 @@ from sqlalchemy.pool import StaticPool
 
 from app.main import app
 from app.database import Base, get_db
+from app.core.security import hash_password
+from app.models.user import User
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
@@ -41,3 +43,18 @@ def client():
 
     app.dependency_overrides.clear()
     Base.metadata.drop_all(bind=engine)
+    
+@pytest.fixture
+def test_user(client):
+    response = client.post(
+        "/user/",
+        json={
+            "name": "Test User",
+            "email": "test@example.com",
+            "password": "123456"
+        }
+    )
+
+    assert response.status_code == 200
+
+    return response.json()
