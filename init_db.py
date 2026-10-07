@@ -7,7 +7,7 @@ print("2 - database importado")
 from app.models.user import User
 from app.models.allergy import Allergy
 
-print("3 - User importado")
+print("3 - Models importados")
 
 Base.metadata.create_all(bind=engine)
 

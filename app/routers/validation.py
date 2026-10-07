@@ -9,6 +9,7 @@ from app.services.image_processor import ImageProcessor
 from app.core.dependencies import get_current_user
 from app.models.user import User
 
+
 router = APIRouter(
     prefix="/validation",
     tags=["Validation"]
@@ -38,7 +39,7 @@ def validate_components(
                 status_code=422,
                 detail="Não foi possível processar a imagem ou extrair texto."
             ) from e
-            
+
         if not image_text:
             raise HTTPException(
                 status_code=422,
@@ -46,6 +47,7 @@ def validate_components(
             )
 
     allergies = service.check_allergies(
+        user_id=current_user.id,
         user_components=components,
         image_text=image_text
     )

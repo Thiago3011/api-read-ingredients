@@ -1,10 +1,10 @@
-
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.models.allergy import Allergy
 from app.repositories.allergy_repository import AllergyRepository
 from app.services.allergy_service import AllergyService
+
 
 def get_auth_headers(client, test_user):
     response = client.post(
@@ -30,7 +30,7 @@ class FakeAllergy:
 
 
 class FakeRepository:
-    def get_all(self):
+    def get_all(self, user_id):
         return [
             FakeAllergy("Sulfato de níquel"),
             FakeAllergy("Nickel sulfate"),
@@ -45,6 +45,7 @@ def test_should_identify_allergy_from_user_component():
     service = AllergyService(repository)
 
     result = service.check_allergies(
+        user_id=1,
         user_components=["Sulfato de níquel"]
     )
 
@@ -56,6 +57,7 @@ def test_should_ignore_non_allergy_component():
     service = AllergyService(repository)
 
     result = service.check_allergies(
+        user_id=1,
         user_components=["Glicerina"]
     )
 
@@ -67,6 +69,7 @@ def test_should_identify_allergy_from_ocr_text():
     service = AllergyService(repository)
 
     result = service.check_allergies(
+        user_id=1,
         user_components=[],
         image_text="Ingredientes: água, Nickel sulfate, glicerina."
     )
@@ -79,6 +82,7 @@ def test_should_not_duplicate_allergy():
     service = AllergyService(repository)
 
     result = service.check_allergies(
+        user_id=1,
         user_components=["Nickel sulfate"],
         image_text="Ingredientes: Nickel sulfate, glicerina."
     )
@@ -88,14 +92,27 @@ def test_should_not_duplicate_allergy():
 
 # Testes da API
 
-def test_should_identify_allergy_through_api(client, test_user, monkeypatch):
+def test_should_identify_allergy_through_api(
+    client,
+    test_user,
+    monkeypatch
+):
     monkeypatch.setattr(
         AllergyRepository,
         "get_all",
-        lambda self: [
-            Allergy(name="Sulfato de níquel"),
-            Allergy(name="Nickel sulfate"),
-            Allergy(name="Cloreto de cobalto"),
+        lambda self, user_id: [
+            Allergy(
+                name="Sulfato de níquel",
+                user_id=user_id
+            ),
+            Allergy(
+                name="Nickel sulfate",
+                user_id=user_id
+            ),
+            Allergy(
+                name="Cloreto de cobalto",
+                user_id=user_id
+            ),
         ],
     )
 
@@ -111,14 +128,27 @@ def test_should_identify_allergy_through_api(client, test_user, monkeypatch):
     }
 
 
-def test_should_ignore_non_allergy_through_api(client, test_user, monkeypatch):
+def test_should_ignore_non_allergy_through_api(
+    client,
+    test_user,
+    monkeypatch
+):
     monkeypatch.setattr(
         AllergyRepository,
         "get_all",
-        lambda self: [
-            Allergy(name="Sulfato de níquel"),
-            Allergy(name="Nickel sulfate"),
-            Allergy(name="Cloreto de cobalto"),
+        lambda self, user_id: [
+            Allergy(
+                name="Sulfato de níquel",
+                user_id=user_id
+            ),
+            Allergy(
+                name="Nickel sulfate",
+                user_id=user_id
+            ),
+            Allergy(
+                name="Cloreto de cobalto",
+                user_id=user_id
+            ),
         ],
     )
 
@@ -129,19 +159,32 @@ def test_should_ignore_non_allergy_through_api(client, test_user, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"allergies": []}
+    assert response.json() == {
+        "allergies": []
+    }
 
 
 def test_should_identify_allergy_from_image_through_api(
-    client, test_user, monkeypatch
+    client,
+    test_user,
+    monkeypatch
 ):
     monkeypatch.setattr(
         AllergyRepository,
         "get_all",
-        lambda self: [
-            Allergy(name="Sulfato de níquel"),
-            Allergy(name="Nickel sulfate"),
-            Allergy(name="Cloreto de cobalto"),
+        lambda self, user_id: [
+            Allergy(
+                name="Sulfato de níquel",
+                user_id=user_id
+            ),
+            Allergy(
+                name="Nickel sulfate",
+                user_id=user_id
+            ),
+            Allergy(
+                name="Cloreto de cobalto",
+                user_id=user_id
+            ),
         ],
     )
 
@@ -160,7 +203,11 @@ def test_should_identify_allergy_from_image_through_api(
     response = client.post(
         "/validation/",
         files={
-            "image": ("ingredientes.jpg", b"fake image", "image/jpeg")
+            "image": (
+                "ingredientes.jpg",
+                b"fake image",
+                "image/jpeg"
+            )
         },
         headers=get_auth_headers(client, test_user)
     )
@@ -172,7 +219,9 @@ def test_should_identify_allergy_from_image_through_api(
 
 
 def test_should_return_error_when_image_processing_fails(
-    client, test_user, monkeypatch
+    client,
+    test_user,
+    monkeypatch
 ):
     class FakeImageProcessor:
         def __init__(self, image_file):
@@ -189,7 +238,11 @@ def test_should_return_error_when_image_processing_fails(
     response = client.post(
         "/validation/",
         files={
-            "image": ("ingredientes.jpg", b"fake image", "image/jpeg")
+            "image": (
+                "ingredientes.jpg",
+                b"fake image",
+                "image/jpeg"
+            )
         },
         headers=get_auth_headers(client, test_user)
     )
