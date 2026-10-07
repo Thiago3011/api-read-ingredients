@@ -30,9 +30,16 @@ def validate_components(
 
     if image and image.filename:
         image_processor = ImageProcessor(image.file)
-        image_text = image_processor.process_image()
 
-        if not image_text or "[ERRO]" in image_text.upper():
+        try:
+            image_text = image_processor.process_image()
+        except ValueError as e:
+            raise HTTPException(
+                status_code=422,
+                detail="Não foi possível processar a imagem ou extrair texto."
+            ) from e
+            
+        if not image_text:
             raise HTTPException(
                 status_code=422,
                 detail="Não foi possível processar a imagem ou extrair texto."

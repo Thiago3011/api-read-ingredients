@@ -51,7 +51,9 @@ class ImageProcessor:
             return self._correct_text(text)
 
         except Exception as e:
-            return f"[ERRO] Não foi possível processar a imagem: {str(e)}"
+            raise ValueError(
+                f"Não foi possível processar a imagem: {str(e)}"
+            ) from e
     
     def _correct_orientation(self, image):
         try:

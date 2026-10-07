@@ -8,9 +8,7 @@ from app.database import get_db
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 
-
 security = HTTPBearer()
-
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),

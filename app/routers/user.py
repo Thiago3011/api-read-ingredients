@@ -22,9 +22,13 @@ def get_users(db: Session = Depends(get_db), current_user: User = Depends(get_cu
     return service.get_users()
 
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     service = UserService(UserRepository(db))
-    
+
     return service.get_user(user_id)
 
 @router.post("/", response_model=UserResponse)

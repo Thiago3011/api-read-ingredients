@@ -656,3 +656,8 @@ def test_get_users_with_valid_token(client, test_user):
     )
 
     assert response.status_code == 200
+    
+def test_get_user_without_token(client, test_user):
+    response = client.get(f"/user/{test_user['id']}")
+
+    assert response.status_code == 401

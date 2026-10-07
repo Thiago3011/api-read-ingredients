@@ -179,7 +179,7 @@ def test_should_return_error_when_image_processing_fails(
             self.image_file = image_file
 
         def process_image(self):
-            return "[ERRO] Falha ao processar imagem"
+            raise ValueError("Falha ao processar imagem")
 
     monkeypatch.setattr(
         "app.routers.validation.ImageProcessor",
