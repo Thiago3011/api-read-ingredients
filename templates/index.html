@@ -1,57 +1,557 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 
-  <head>
+<head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validador de alergias - Moffy</title>
-    <!-- Link para o arquivo de estilos CSS -->
+
+    <title>Allergy Validator</title>
+
     <link rel="stylesheet" href="/static/index.css">
-  </head>
-  
-  <body>
-    <div id="container">
-      <!-- Imagem ilustrativa relacionada ao tema alergias -->
-      <img height="256" width="256" src="/static/images/irritacao-na-pele.png" alt="Imagem sobre irritação na pele">
+</head>
 
-      <!-- Título principal da página -->
-      <h1>Vamos validar se você possui alergias ao produto!</h1>
-      
-      <!-- Instrução para o usuário -->
-      <p>Digite abaixo um dos componentes, e se precisar adicione mais campos no botão "Adicionar um novo componente".</p>
-      
-      <!-- Formulário principal que envia dados para a rota '/' via POST -->
-      <form id="components-form">
-        <div class="input-row">
-          <!-- Primeiro campo de texto para componente alergênico -->
-          <input type="text" name="components" placeholder="Insira um componente...">
-          <!-- Botão para adicionar mais campos de componente dinamicamente -->
-          <button id="btn-add-allergy" type="button" name="increase_allergy">+</button>
+<body>
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <header id="main-header">
+
+        <div class="header-content">
+
+            <div class="app-name">
+                Allergy Validator
+            </div>
+
+            <div class="profile-container">
+
+                <button
+                    id="profile-button"
+                    class="profile-button"
+                    type="button"
+                    aria-label="Perfil"
+                >
+                    <span class="profile-icon">👤</span>
+                </button>
+
+                <div
+                    id="profile-menu"
+                    class="profile-menu hidden"
+                >
+                    <div class="profile-menu-name">
+                        Minha conta
+                    </div>
+
+                    <button
+                        id="my-allergies-button"
+                        type="button"
+                    >
+                        ❤️ Minhas alergias
+                    </button>
+
+                    <button
+                        id="logout-button"
+                        type="button"
+                    >
+                        🚪 Sair
+                    </button>
+                </div>
+
+            </div>
+
         </div>
 
-        <!-- Loader exibido enquanto o processamento ocorre; inicialmente oculto -->
-        <div class="loader" style="display: none;" id="loader"></div>
+    </header>
 
-        <div id="result" style="display: none;"></div>
-        
-        <!-- Grupo para upload de imagem -->
-        <div class="upload-group">
-          <label for="imageInput">Carregar uma imagem</label>
-          <!-- Input para selecionar arquivo de imagem para OCR -->
-          <input type="file" name="image" id="imageInput" accept="image/*">
-          <!-- Espaço para exibir o nome do arquivo selecionado, inicialmente oculto -->
-          <span id="file-name" style="display:none; margin-left:10px; color: white; opacity: 0.7;"></span>
+
+    <!-- =========================
+         CHECKER
+    ========================== -->
+
+    <main id="checker-screen" class="hidden">
+
+        <section class="checker-container">
+
+            <div class="checker-header">
+
+                <h1>
+                    Validador de Alergias
+                </h1>
+
+                <p>
+                    Verifique se os componentes de um produto
+                    podem causar uma reação alérgica.
+                </p>
+
+            </div>
+
+
+            <!-- Imagem principal -->
+
+            <div class="checker-image-container">
+
+                <img
+                    src="/static/images/irritacao-na-pele.png"
+                    alt="Ilustração de irritação na pele"
+                    class="checker-image"
+                >
+
+            </div>
+
+
+            <!-- Formulário -->
+
+            <form
+                id="validation-form"
+                class="validation-form"
+            >
+
+                <div class="form-group">
+
+                    <label for="components">
+                        Componentes do produto
+                    </label>
+
+                    <textarea
+                        id="components"
+                        name="components"
+                        rows="5"
+                        placeholder="Digite os componentes separados por vírgula..."
+                    ></textarea>
+
+                </div>
+
+
+                <div class="form-divider">
+                    <span>e/ou</span>
+                </div>
+
+
+                <!-- Upload -->
+
+                <div class="upload-section">
+
+                    <label
+                        for="image"
+                        class="upload-label"
+                    >
+                        📷 Enviar imagem do rótulo
+                    </label>
+
+                    <input
+                        type="file"
+                        id="image"
+                        name="image"
+                        accept="image/*"
+                    >
+
+                    <span
+                        id="file-name"
+                        class="file-name"
+                    >
+                        Nenhuma imagem selecionada
+                    </span>
+
+                </div>
+
+
+                <!-- Mensagem -->
+
+                <div
+                    id="validation-message"
+                    class="validation-message hidden"
+                ></div>
+
+
+                <!-- Botão -->
+
+                <button
+                    id="validate-button"
+                    class="validate-button"
+                    type="submit"
+                >
+                    Verificar alergias
+                </button>
+
+            </form>
+
+
+            <!-- Loader -->
+
+            <div
+                id="loader"
+                class="loader-container hidden"
+            >
+
+                <div class="loader"></div>
+
+                <p>
+                    Analisando componentes...
+                </p>
+
+            </div>
+
+
+            <!-- Resultado -->
+
+            <section
+                id="result"
+                class="result-container hidden"
+            >
+
+                <h2>
+                    Resultado da análise
+                </h2>
+
+                <div
+                    id="result-content"
+                    class="result-content"
+                ></div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         TELA DE LOGIN
+    ========================== -->
+
+    <div
+        id="auth-screen"
+        class="auth-screen"
+    >
+
+        <div class="auth-card">
+
+            <div class="auth-image-container">
+
+                <img
+                    src="/static/images/irritacao-na-pele.png"
+                    alt="Allergy Validator"
+                    class="auth-image"
+                >
+
+            </div>
+
+            <div class="auth-card-content">
+
+                <!-- LOGIN -->
+
+                <div id="login-container">
+
+                    <div class="modal-header">
+
+                        <h1>
+                            Bem-vindo ao Allergy Validator!
+                        </h1>
+
+                        <p>
+                            Entre na sua conta para validar produtos
+                            e gerenciar suas alergias.
+                        </p>
+
+                    </div>
+
+
+                    <form id="login-form">
+
+                        <div class="form-group">
+
+                            <label for="login-email">
+                                E-mail
+                            </label>
+
+                            <input
+                                type="email"
+                                id="login-email"
+                                name="email"
+                                placeholder="seu@email.com"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="login-password">
+                                Senha
+                            </label>
+
+                            <input
+                                type="password"
+                                id="login-password"
+                                name="password"
+                                placeholder="Sua senha"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div
+                            id="login-message"
+                            class="auth-message"
+                        ></div>
+
+
+                        <button
+                            type="submit"
+                            class="primary-button"
+                        >
+                            Entrar
+                        </button>
+
+                    </form>
+
+
+                    <div class="auth-switch">
+
+                        <span>
+                            Ainda não possui uma conta?
+                        </span>
+
+                        <button
+                            id="show-register"
+                            type="button"
+                            class="link-button"
+                        >
+                            Criar conta
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CADASTRO -->
+
+                <div
+                    id="register-container"
+                    class="hidden"
+                >
+
+                    <div class="modal-header">
+
+                        <h1>
+                            Criar conta
+                        </h1>
+
+                        <p>
+                            Crie sua conta para salvar suas alergias.
+                        </p>
+
+                    </div>
+
+
+                    <form id="register-form">
+
+                        <div class="form-group">
+
+                            <label for="register-name">
+                                Nome
+                            </label>
+
+                            <input
+                                type="text"
+                                id="register-name"
+                                name="name"
+                                placeholder="Seu nome"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="register-email">
+                                E-mail
+                            </label>
+
+                            <input
+                                type="email"
+                                id="register-email"
+                                name="email"
+                                placeholder="seu@email.com"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="register-password">
+                                Senha
+                            </label>
+
+                            <input
+                                type="password"
+                                id="register-password"
+                                name="password"
+                                placeholder="Crie uma senha"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div
+                            id="register-message"
+                            class="auth-message"
+                        ></div>
+
+
+                        <button
+                            type="submit"
+                            class="primary-button"
+                        >
+                            Criar conta
+                        </button>
+
+                    </form>
+
+
+                    <div class="auth-switch">
+
+                        <span>
+                            Já possui uma conta?
+                        </span>
+
+                        <button
+                            id="show-login"
+                            type="button"
+                            class="link-button"
+                        >
+                            Entrar
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <!-- Botão para enviar o formulário -->
-        <button type="submit" id="submit-check">Checar!</button>
-      </form>
-      
     </div>
-    
-    <!-- Inclusão do script JavaScript que controla a interação do formulário -->
-    <script type="text/javascript" src="/static/script.js"></script>
-  </body>
+
+
+    <!-- =========================
+         MODAL MINHAS ALERGIAS
+    ========================== -->
+
+    <div
+        id="allergies-modal"
+        class="modal-overlay hidden"
+    >
+
+        <div class="modal allergies-modal">
+
+            <button
+                id="close-allergies-modal"
+                class="modal-close"
+                type="button"
+                aria-label="Fechar"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-header">
+
+                <h2>
+                    Minhas alergias
+                </h2>
+
+                <p>
+                    Cadastre as alergias que deseja utilizar
+                    nas validações.
+                </p>
+
+            </div>
+
+
+            <!-- Nova alergia -->
+
+            <form
+                id="create-allergy-form"
+                class="create-allergy-form"
+            >
+
+                <div class="form-group">
+
+                    <label for="new-allergy">
+                        Adicionar alergia
+                    </label>
+
+                    <div class="create-allergy-row">
+
+                        <input
+                            type="text"
+                            id="new-allergy"
+                            placeholder="Ex.: amendoim"
+                            autocomplete="off"
+                        >
+
+                        <button
+                            type="submit"
+                            class="add-allergy-button"
+                        >
+                            Adicionar
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+
+            <div
+                id="allergy-message"
+                class="allergy-message"
+            ></div>
+
+
+            <!-- Busca -->
+
+            <div class="search-container">
+
+                <input
+                    type="text"
+                    id="allergy-search"
+                    placeholder="Pesquisar nas minhas alergias..."
+                >
+
+            </div>
+
+
+            <!-- Lista -->
+
+            <div
+                id="allergies-list"
+                class="allergies-list"
+            >
+
+                <div class="allergies-loading">
+                    Carregando alergias...
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script src="/static/script.js"></script>
+
+</body>
 
 </html>
