@@ -8,6 +8,7 @@ services:
       - .:/app
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/allergy_validator
+      TESSERACT_CMD: /usr/bin/tesseract
     depends_on:
       - postgres
 

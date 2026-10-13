@@ -104,7 +104,7 @@ JWT_EXPIRE_MINUTES=30
 TESSERACT_CMD=
 ```
 
-No Docker Compose, a API acessa o banco pelo hostname interno `postgres`; o arquivo `.env` acima é para a execução local fora do container. Para a aplicação dentro dos containers, a configuração `DATABASE_URL` já é definida no `docker-compose.yml`. Configure a mesma chave JWT que você utiliza localmente por meio das variáveis do serviço antes de usar um ambiente diferente do desenvolvimento.
+No Docker Compose, a API acessa o banco pelo hostname interno `postgres`. O `docker-compose.yml` define `DATABASE_URL` e também `TESSERACT_CMD=/usr/bin/tesseract`, que é o caminho do executável dentro do container Linux. Isso evita que um caminho de Tesseract específico do Windows, configurado no `.env` local, seja usado dentro do container. Para executar o Python diretamente no Windows, configure `TESSERACT_CMD` com o caminho do executável instalado nessa máquina. Mantenha `JWT_SECRET_KEY` definido no `.env` local para o ambiente de desenvolvimento e nunca publique uma chave real.
 
 Construa e inicie os serviços:
 
