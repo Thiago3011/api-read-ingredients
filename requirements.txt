@@ -1,4 +1,4 @@
-﻿fastapi==0.141.1
+fastapi==0.141.1
 uvicorn==0.53.0
 sqlalchemy==2.0.54
 psycopg[binary]==3.3.5
@@ -9,5 +9,6 @@ pillow-heif==1.0.0
 pytesseract==0.3.10
 pyspellchecker==0.8.3
 pytest==9.1.1
+httpx2==2.13.1
 pwdlib[argon2]==0.3.1
 python-jose==3.5.0
