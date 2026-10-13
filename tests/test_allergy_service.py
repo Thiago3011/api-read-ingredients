@@ -77,17 +77,17 @@ def test_should_identify_allergy_from_ocr_text():
     assert result == ["Nickel sulfate"]
 
 
-def test_should_not_duplicate_allergy():
+def test_should_not_duplicate_allergy_with_different_case():
     repository = FakeRepository()
     service = AllergyService(repository)
 
     result = service.check_allergies(
         user_id=1,
-        user_components=["Nickel sulfate"],
+        user_components=["nickel sulfate", "Nickel Sulfate"],
         image_text="Ingredientes: Nickel sulfate, glicerina."
     )
 
-    assert result == ["Nickel sulfate"]
+    assert result == ["nickel sulfate"]
 
 
 # Testes da API
@@ -215,6 +215,53 @@ def test_should_identify_allergy_from_image_through_api(
     assert response.status_code == 200
     assert response.json() == {
         "allergies": ["Nickel sulfate"]
+    }
+
+
+def test_should_not_duplicate_allergy_found_in_text_and_image_through_api(
+    client,
+    test_user,
+    monkeypatch
+):
+    monkeypatch.setattr(
+        AllergyRepository,
+        "get_all",
+        lambda self, user_id: [
+            Allergy(
+                name="Amendoim",
+                user_id=user_id
+            )
+        ],
+    )
+
+    class FakeImageProcessor:
+        def __init__(self, image_file):
+            self.image_file = image_file
+
+        def process_image(self):
+            return "Ingredientes: Amendoim, açúcar."
+
+    monkeypatch.setattr(
+        "app.routers.validation.ImageProcessor",
+        FakeImageProcessor,
+    )
+
+    response = client.post(
+        "/validation/",
+        data={"components": "amendoim"},
+        files={
+            "image": (
+                "ingredientes.jpg",
+                b"fake image",
+                "image/jpeg"
+            )
+        },
+        headers=get_auth_headers(client, test_user)
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "allergies": ["amendoim"]
     }
 
 

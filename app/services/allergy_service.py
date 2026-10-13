@@ -50,23 +50,36 @@ class AllergyService:
         allergies = self.repository.get_all(user_id)
 
         allergy_names = [allergy.name for allergy in allergies]
+        normalized_allergy_names = {
+            name.casefold() for name in allergy_names
+        }
 
         result = []
+        matched_allergies = set()
 
-        # Verifica os componentes informados pelo usuário
+        # Verifica os componentes informados pelo usuário.
         for component in user_components:
-            if component.lower() in [
-                allergy.lower() for allergy in allergy_names
-            ]:
-                result.append(component)
+            normalized_component = component.casefold()
 
-        # Verifica o texto extraído pelo OCR
+            if (
+                normalized_component in normalized_allergy_names
+                and normalized_component not in matched_allergies
+            ):
+                result.append(component)
+                matched_allergies.add(normalized_component)
+
+        # Verifica o texto extraído pelo OCR, sem repetir correspondências.
         if image_text:
+            normalized_image_text = image_text.casefold()
+
             for allergy in allergy_names:
+                normalized_allergy = allergy.casefold()
+
                 if (
-                    allergy.lower() in image_text.lower()
-                    and allergy not in result
+                    normalized_allergy in normalized_image_text
+                    and normalized_allergy not in matched_allergies
                 ):
                     result.append(allergy)
+                    matched_allergies.add(normalized_allergy)
 
         return result
