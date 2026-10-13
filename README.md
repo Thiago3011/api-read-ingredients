@@ -1,389 +1,254 @@
 # Allergy Validator
 
-![Allergy Validator](./static/images/irritacao-na-pele.png)
+API para identificação de possíveis componentes alergênicos em listas de ingredientes, com autenticação, dados individualizados por usuário e extração de texto de imagens por OCR.
 
-API para identificação de possíveis componentes alergênicos a partir de ingredientes informados manualmente ou extraídos de imagens utilizando OCR.
+O Allergy Validator é uma aplicação web desenvolvida para ajudar o usuário a comparar ingredientes informados manualmente ou extraídos de rótulos com a lista de alergias que ele próprio cadastrou.
 
-O projeto foi desenvolvido inicialmente para resolver um problema real e, posteriormente, revisitado com foco em organização arquitetural, testes, persistência de dados e evolução do backend.
-
----
-
-## Sobre o projeto
-
-O Allergy Validator permite que o usuário informe ingredientes manualmente ou envie uma imagem contendo uma lista de ingredientes.
-
-Quando uma imagem é enviada, o sistema utiliza OCR para extrair o texto e então verifica se existem componentes correspondentes às alergias cadastradas.
-
-O projeto está sendo reconstruído utilizando uma arquitetura mais organizada, separando responsabilidades entre API, serviços, repositórios e modelos de dados.
-
----
+> **Aviso:** esta aplicação é uma ferramenta auxiliar. Ela não substitui orientação médica, a leitura cuidadosa do rótulo ou a confirmação de informações com o fabricante. OCR e correspondência de texto podem deixar de identificar ingredientes ou produzir resultados incorretos.
 
 ## Funcionalidades
 
-- Entrada manual de ingredientes
-- Upload de imagens
-- Extração de texto utilizando OCR
-- Processamento e correção do texto extraído
-- Cadastro de componentes relacionados a alergias
-- Validação dos ingredientes informados
-- Validação de componentes encontrados através de OCR
-- API REST com FastAPI
-- Persistência utilizando PostgreSQL
-- Testes automatizados com Pytest
-- Execução da aplicação utilizando Docker
-- Docker Compose para ambiente local com API + PostgreSQL
-
----
+- Cadastro de usuários e login.
+- Autenticação baseada em JWT.
+- Armazenamento de senhas por hash.
+- Endpoints protegidos para usuários autenticados.
+- Cadastro, listagem e exclusão das próprias alergias.
+- Isolamento de alergias entre usuários.
+- Validação por texto, imagem ou texto e imagem na mesma requisição.
+- Extração de texto de imagens com Tesseract OCR.
+- Respostas de erro HTTP para falhas de processamento de imagem.
+- Interface web para login, gerenciamento de alergias e validação.
+- Testes automatizados com Pytest.
+- Execução em containers com Docker Compose.
 
 ## Tecnologias
 
-### Backend
-
-- Python 3.12
-- FastAPI
-- SQLAlchemy
-- Pydantic
-- PostgreSQL
-- Psycopg
-
-### Processamento de imagens
-
-- Tesseract OCR
-- Pytesseract
-- Pillow
-- Pillow-Heif
-- PySpellChecker
-
-### Testes
-
-- Pytest
-
-### Infraestrutura
-
-- Docker
-- Docker Compose
-
-### Frontend
-
-- HTML
-- CSS
-- JavaScript
-
----
+| Tecnologia | Utilização |
+|---|---|
+| Python 3.12 | Linguagem do backend |
+| FastAPI | API REST e documentação OpenAPI |
+| SQLAlchemy | ORM e acesso ao banco |
+| PostgreSQL | Banco de dados |
+| Pydantic / pydantic-settings | Validação de dados e configurações |
+| JWT (python-jose) | Tokens de autenticação |
+| pwdlib / Argon2 | Hash de senhas |
+| Tesseract OCR / Pytesseract | Extração de texto de imagens |
+| Pillow / Pillow-Heif | Processamento e leitura de imagens |
+| HTML, CSS e JavaScript | Frontend |
+| Docker / Docker Compose | Containerização e execução local |
+| Pytest | Testes automatizados |
 
 ## Arquitetura
 
-O projeto utiliza uma arquitetura organizada por responsabilidades:
+O backend separa responsabilidades entre routers, services, repositories e models.
 
 ```text
-app/
-├── core/
-│   └── config.py
-│
-├── models/
-│   ├── allergy.py
-│   └── user.py
-│
-├── repositories/
-│   └── allergy_repository.py
-│
-├── routers/
-│   └── validation.py
-│
-├── schemas/
-│
-├── services/
-│   ├── allergy_service.py
-│   └── image_processor.py
-│
-├── database.py
-└── main.py
+Cliente web
+    |
+    v
+Router (FastAPI)
+    |
+    v
+Service (regras de negócio)
+    |
+    v
+Repository (acesso a dados)
+    |
+    v
+PostgreSQL
 ```
 
-### Responsabilidades
+- **Routers:** recebem as requisições HTTP, declaram dependências e retornam respostas.
+- **Services:** implementam as regras de negócio.
+- **Repositories:** concentram operações de consulta e persistência.
+- **Models:** representam as entidades persistidas via SQLAlchemy.
+- **Schemas:** definem e validam estruturas de entrada e saída.
+- **Core:** reúne configurações e dependências compartilhadas, incluindo autenticação.
 
-**Routers**
+### Modelo de alergias
 
-Responsáveis pelos endpoints da API e pela comunicação entre as requisições HTTP e os serviços da aplicação.
-
-**Services**
-
-Contêm as regras de negócio e o processamento das informações.
-
-**Repositories**
-
-Responsáveis pelo acesso aos dados persistidos no banco.
-
-**Models**
-
-Representam as entidades utilizadas pelo banco de dados através do SQLAlchemy.
-
-**Core**
-
-Contém configurações centrais da aplicação.
-
----
-
-## Como funciona
-
-O fluxo principal da aplicação pode ser representado da seguinte forma:
+Cada alergia pertence diretamente ao usuário que a cadastrou:
 
 ```text
-Usuário
-   │
-   ├── Ingredientes
-   │
-   └── Imagem
-          │
-          ▼
-     FastAPI
-          │
-          ▼
-   ImageProcessor
-          │
-          ▼
-      Texto OCR
-          │
-          ▼
-   AllergyService
-          │
-          ▼
- AllergyRepository
-          │
-          ▼
-    PostgreSQL
-          │
-          ▼
-    Resultado
+User
+ └── Allergy
+      ├── id
+      ├── name
+      └── user_id
 ```
 
-Quando o usuário envia ingredientes manualmente, eles são encaminhados diretamente para a camada de serviço.
+As operações de listar, validar e excluir alergias levam em conta o usuário autenticado. Não há necessidade de uma lista global compartilhada.
 
-Quando uma imagem é enviada, ela passa primeiro pelo processamento de imagem e OCR. O texto extraído então é utilizado na validação.
+## Executar localmente com Docker
 
----
+### Pré-requisitos
 
-## Executando com Docker
+- Git
+- Docker Desktop com Docker Compose
 
-O projeto possui um `docker-compose.yml` que inicia a API e o PostgreSQL.
+Clone o repositório:
 
-### 1. Subir os containers
+```bash
+git clone https://github.com/Thiago3011/api-read-ingredients.git
+cd api-read-ingredients
+```
+
+Crie um arquivo `.env` na raiz. Use valores locais de desenvolvimento e não publique secrets reais:
+
+```env
+DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/allergy_validator
+JWT_SECRET_KEY=replace-with-a-long-random-secret
+JWT_ALGORITHM=HS256
+JWT_EXPIRE_MINUTES=30
+TESSERACT_CMD=
+```
+
+No Docker Compose, a API acessa o banco pelo hostname interno `postgres`; o arquivo `.env` acima é para a execução local fora do container. Para a aplicação dentro dos containers, a configuração `DATABASE_URL` já é definida no `docker-compose.yml`. Configure a mesma chave JWT que você utiliza localmente por meio das variáveis do serviço antes de usar um ambiente diferente do desenvolvimento.
+
+Construa e inicie os serviços:
 
 ```bash
 docker compose up -d --build
 ```
 
-### 2. Verificar os containers
+Confira os containers:
 
 ```bash
 docker compose ps
+docker compose logs -f api
 ```
 
-### 3. Acessar a aplicação
+Acesse a aplicação web em [http://localhost:8000](http://localhost:8000) e a documentação interativa em [http://localhost:8000/docs](http://localhost:8000/docs).
 
-Abra:
-
-```text
-http://localhost:8000
-```
-
-A documentação interativa da API está disponível em:
-
-```text
-http://localhost:8000/docs
-```
-
-### 4. Parar os containers
+Para parar os containers:
 
 ```bash
 docker compose down
 ```
 
----
+O banco usa o volume Docker `postgres_data`, destinado a preservar os dados quando os containers são recriados. Evite usar `docker compose down -v` se quiser manter esse volume.
 
-## Executando localmente
+## Executar localmente sem container da API
 
-Também é possível executar a aplicação diretamente através de um ambiente virtual Python.
+O PostgreSQL e o Tesseract precisam estar disponíveis no ambiente. Crie e ative um ambiente virtual e instale as dependências:
 
-### 1. Criar o ambiente virtual
-
-Windows:
+Windows PowerShell:
 
 ```powershell
-python -m venv venv
-venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 ```
 
 Linux/macOS:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 2. Instalar as dependências
-
-```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Configurar as variáveis de ambiente
-
-Crie um arquivo `.env`:
-
-```env
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/allergy_validator
-TESSERACT_CMD=C:/Program Files/Tesseract-OCR/tesseract.exe
-```
-
-O caminho do Tesseract deve ser ajustado de acordo com o ambiente utilizado.
-
-### 4. Inicializar os dados
-
-Para cadastrar a lista inicial de alergias:
-
-```bash
-python -m scripts.seed_allergies
-```
-
-### 5. Iniciar a API
+Configure as variáveis de ambiente em `.env`, apontando `DATABASE_URL` para o PostgreSQL acessível pela máquina e configurando `TESSERACT_CMD` caso o executável não esteja no PATH. Em seguida, inicie a aplicação:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-A aplicação estará disponível em:
+A aplicação estará disponível em [http://localhost:8000](http://localhost:8000).
 
-```text
-http://localhost:8000
+## Principais endpoints
+
+Os endpoints abaixo refletem os routers atuais do projeto.
+
+| Método | Endpoint | Descrição | Autenticação |
+|---|---|---|---|
+| POST | `/user/` | Criar usuário | Não |
+| GET | `/user/` | Listar usuários | JWT |
+| GET | `/user/{user_id}` | Consultar usuário | JWT |
+| PATCH | `/user/{user_id}` | Atualizar o próprio usuário | JWT; apenas o próprio usuário |
+| DELETE | `/user/{user_id}` | Excluir o próprio usuário | JWT; apenas o próprio usuário |
+| POST | `/auth/login` | Entrar e obter token | Não |
+| GET | `/user/allergies/` | Listar as próprias alergias | JWT |
+| POST | `/user/allergies/?name={nome}` | Cadastrar alergia | JWT |
+| DELETE | `/user/allergies/{allergy_id}` | Excluir uma alergia própria | JWT |
+| POST | `/validation/` | Validar ingredientes com texto e/ou imagem | JWT |
+
+Para endpoints protegidos, envie o token no cabeçalho:
+
+```http
+Authorization: Bearer <seu_token>
 ```
 
----
+### Login
 
-## Testes
+O endpoint `POST /auth/login` recebe JSON com `email` e `password`. Consulte o Swagger para verificar o formato exato da resposta e obter o token.
 
-Os testes automatizados podem ser executados utilizando:
+### Validação de ingredientes
+
+O endpoint `POST /validation/` recebe dados multipart/form-data:
+- `components`: campos de texto repetidos, um por ingrediente (opcional se houver imagem);
+- `image`: arquivo de imagem opcional.
+
+A requisição pode conter somente texto, somente imagem ou ambos. O resultado é retornado no campo `allergies`. Uma imagem que não possa ser processada ou da qual não seja possível extrair texto retorna erro HTTP 422.
+
+A documentação em `/docs` é a referência mais atual para os schemas, parâmetros e respostas.
+
+## Testes automatizados
+
+Com o ambiente Python e as dependências instaladas:
 
 ```bash
 pytest -q
 ```
 
-Atualmente, os testes cobrem principalmente a lógica de identificação de componentes alergênicos, incluindo:
+A última execução registrada durante o desenvolvimento foi de **48 testes aprovados e 3 warnings**. Esse número deve ser confirmado novamente após alterações futuras.
 
-- identificação de alergênico informado manualmente;
-- componentes que não são alergênicos;
-- identificação através de texto extraído por OCR;
-- prevenção de resultados duplicados.
-
----
-
-## API
-
-A API possui atualmente o endpoint principal:
-
-```http
-POST /validation/
-```
-
-O endpoint recebe:
-
-- componentes informados pelo usuário;
-- opcionalmente, uma imagem para processamento via OCR.
-
-A documentação interativa pode ser acessada através do Swagger:
-
-```text
-http://localhost:8000/docs
-```
-
----
+A suíte inclui testes de usuários e autenticação, gerenciamento e isolamento de alergias e regras de validação. Os testes automatizados não substituem a verificação manual do fluxo completo pela interface.
 
 ## Estrutura do projeto
 
+A estrutura abaixo resume os diretórios e arquivos principais:
+
 ```text
 api-read-ingredients/
-│
 ├── app/
 │   ├── core/
-│   │   └── config.py
-│   │
 │   ├── models/
-│   │   ├── allergy.py
-│   │   ├── user.py
-│   │   └── __init__.py
-│   │
 │   ├── repositories/
-│   │   ├── allergy_repository.py
-│   │   └── __init__.py
-│   │
 │   ├── routers/
-│   │   ├── validation.py
-│   │   └── __init__.py
-│   │
 │   ├── schemas/
-│   │   └── __init__.py
-│   │
 │   ├── services/
-│   │   ├── allergy_service.py
-│   │   ├── image_processor.py
-│   │   └── __init__.py
-│   │
 │   ├── database.py
-│   ├── main.py
-│   └── __init__.py
-│
-├── scripts/
-│   ├── seed_allergies.py
-│   └── __init__.py
-│
+│   └── main.py
 ├── static/
-│   ├── images/
-│   │   └── irritacao-na-pele.png
-│   ├── index.css
-│   └── script.js
-│
 ├── templates/
-│   └── index.html
-│
 ├── tests/
-│   ├── test_allergy_service.py
-│   └── __init__.py
-│
-├── .dockerignore
-├── .gitignore
-├── docker-compose.yml
+├── init_db.py
 ├── Dockerfile
-├── LICENSE
-├── README.md
-└── requirements.txt
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
 ```
 
----
+## Estado atual e próximos passos
 
-## Próximos passos
+O backend já contempla cadastro e autenticação, controle de acesso por usuário, gerenciamento individual de alergias e validação por texto/imagem. O frontend de login e validação também foi integrado.
 
-O projeto está em processo de evolução e alguns componentes serão adicionados gradualmente.
-
-Entre os próximos passos estão:
-
-- implementação de autenticação e usuários;
-- evolução das regras de validação;
-- ampliação da cobertura de testes;
-- criação de schemas específicos para a API;
-- melhorias no tratamento de erros;
-- evolução da persistência e dos relacionamentos;
-- preparação da aplicação para deploy.
-
----
+Próximas etapas do projeto:
+- concluir testes manuais do fluxo completo;
+- revisar persistência do banco e reinicialização dos containers;
+- revisar variáveis e configuração de Docker;
+- concluir documentação detalhada da API;
+- fazer revisão final de qualidade e segurança;
+- preparar deploy e demonstração no portfólio.
 
 ## Licença
 
-Este projeto está licenciado sob a [MIT License](LICENSE).
-
----
+O repositório contém um arquivo [LICENSE](LICENSE). Consulte-o para os termos de utilização e distribuição.
 
 ## Autor
 
 **Thiago Henrique**
 
-[GitHub](https://github.com/Thiago3011)
+- GitHub: [Thiago3011](https://github.com/Thiago3011)
+- Repositório: [Allergy Validator](https://github.com/Thiago3011/api-read-ingredients)
