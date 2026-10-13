@@ -12,6 +12,7 @@ O Allergy Validator é uma aplicação web desenvolvida para ajudar o usuário a
 - Autenticação baseada em JWT.
 - Armazenamento de senhas por hash.
 - Endpoints protegidos para usuários autenticados.
+- Consulta de perfil limitada ao usuário autenticado.
 - Cadastro, listagem e exclusão das próprias alergias.
 - Isolamento de alergias entre usuários.
 - Validação por texto, imagem ou texto e imagem na mesma requisição.
@@ -163,7 +164,7 @@ Os endpoints abaixo refletem os routers atuais do projeto.
 | Método | Endpoint | Descrição | Autenticação |
 |---|---|---|---|
 | POST | `/user/` | Criar usuário | Não |
-| GET | `/user/` | Listar usuários | JWT |
+| GET | `/user/me` | Consultar o próprio perfil | JWT |
 | GET | `/user/{user_id}` | Consultar usuário | JWT |
 | PATCH | `/user/{user_id}` | Atualizar o próprio usuário | JWT; apenas o próprio usuário |
 | DELETE | `/user/{user_id}` | Excluir o próprio usuário | JWT; apenas o próprio usuário |

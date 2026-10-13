@@ -101,35 +101,38 @@ Use o valor de `access_token` nas chamadas protegidas.
 - `401 Unauthorized`: e-mail inexistente ou senha incorreta. A API usa uma mensagem genérica para ambos os casos.
 - `422 Unprocessable Entity`: corpo inválido.
 
-## 3. Listar usuários
+## 3. Consultar o próprio perfil
 
-`GET /user/`
+`GET /user/me`
 
-Exige JWT.
+Exige JWT. Retorna os dados básicos do usuário associado ao token, sem expor senhas ou hashes.
+
+### Exemplo
+
+```http
+GET /user/me
+Authorization: Bearer <access_token>
+```
 
 ### Resposta — 200
 
-A resposta é uma lista de objetos com `id`, `name` e `email`:
-
 ```json
-[
-  {
-    "id": 1,
-    "name": "Maria Silva",
-    "email": "maria@example.com"
-  }
-]
+{
+  "id": 1,
+  "name": "Maria Silva",
+  "email": "maria@example.com"
+}
 ```
 
-**Ponto de atenção de segurança:** no código atual, qualquer usuário autenticado pode chamar essa rota e listar os dados básicos de todos os usuários. Essa permissão deve ser reconsiderada e restringida antes de um deploy público.
+A antiga listagem de usuários por `GET /user/` foi removida para não disponibilizar os dados de todos os usuários a qualquer conta autenticada.
 
 ## 4. Consultar usuário por ID
 
 `GET /user/{user_id}`
 
-Exige JWT.
+Exige JWT. O usuário autenticado só pode consultar o próprio ID. Para obter o próprio perfil sem informar um ID, use `GET /user/me`.
 
-Exemplo:
+### Exemplo
 
 ```http
 GET /user/1
@@ -148,10 +151,8 @@ Authorization: Bearer <access_token>
 
 ### Erros relevantes
 
-- `404 Not Found`: usuário não encontrado.
+- `403 Forbidden`: tentativa de consultar outro usuário.
 - `401 Unauthorized`: token inválido ou expirado.
-
-**Ponto de atenção de segurança:** no código atual, a rota verifica se o solicitante está autenticado, mas não restringe a consulta ao próprio ID. Revise essa regra antes de disponibilizar a API publicamente.
 
 ## 5. Atualizar usuário
 

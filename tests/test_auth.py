@@ -73,7 +73,7 @@ def test_should_get_current_user(client, test_user):
     token = login_response.json()["access_token"]
 
     response = client.get(
-        "/user/",
+        "/user/me",
         headers={
             "Authorization": f"Bearer {token}"
         }

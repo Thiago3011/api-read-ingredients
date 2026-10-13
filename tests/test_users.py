@@ -337,7 +337,7 @@ def test_should_raise_error_when_deleting_nonexistent_user():
 # ==========================================
 
 
-def test_should_return_users_list(client, test_user):
+def test_should_return_current_user_profile(client, test_user):
     login_response = client.post(
         "/auth/login",
         json={
@@ -345,17 +345,19 @@ def test_should_return_users_list(client, test_user):
             "password": "123456"
         }
     )
-
     token = login_response.json()["access_token"]
 
     response = client.get(
-        "/user/",
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
+        "/user/me",
+        headers={"Authorization": f"Bearer {token}"}
     )
 
     assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == test_user["id"]
+    assert data["name"] == test_user["name"]
+    assert data["email"] == test_user["email"]
+    assert "password_hash" not in data
 
 
 def test_should_create_user_through_api(client):
@@ -388,24 +390,49 @@ def test_should_get_user_through_api(client, test_user):
             "password": "123456"
         }
     )
-
     token = login_response.json()["access_token"]
 
     response = client.get(
         f"/user/{user_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
+        headers={"Authorization": f"Bearer {token}"}
     )
 
     assert response.status_code == 200
-
     data = response.json()
-
     assert data["id"] == user_id
     assert data["name"] == test_user["name"]
     assert data["email"] == test_user["email"]
     assert "password_hash" not in data
+
+
+def test_should_not_get_another_user_through_api(client, test_user):
+    other_response = client.post(
+        "/user/",
+        json={
+            "name": "Other User",
+            "email": "other@example.com",
+            "password": "654321"
+        }
+    )
+    assert other_response.status_code == 200
+    other_user_id = other_response.json()["id"]
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": test_user["email"],
+            "password": "123456"
+        }
+    )
+    token = login_response.json()["access_token"]
+
+    response = client.get(
+        f"/user/{other_user_id}",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "You can only access your own user"
 
 
 def test_should_update_user_through_api(client):
@@ -631,13 +658,12 @@ def test_should_create_and_decode_access_token():
     assert "exp" in decoded
 
 
-def test_get_users_without_token(client):
-    response = client.get("/user/")
-
+def test_get_current_user_without_token(client, test_user):
+    response = client.get("/user/me")
     assert response.status_code == 401
 
 
-def test_get_users_with_valid_token(client, test_user):
+def test_get_current_user_with_valid_token(client, test_user):
     login_response = client.post(
         "/auth/login",
         json={
@@ -645,18 +671,35 @@ def test_get_users_with_valid_token(client, test_user):
             "password": "123456"
         }
     )
+    token = login_response.json()["access_token"]
 
+    response = client.get(
+        "/user/me",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == test_user["id"]
+
+
+def test_should_not_expose_users_list_endpoint(client, test_user):
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": test_user["email"],
+            "password": "123456"
+        }
+    )
     token = login_response.json()["access_token"]
 
     response = client.get(
         "/user/",
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
+        headers={"Authorization": f"Bearer {token}"}
     )
 
-    assert response.status_code == 200
-    
+    assert response.status_code == 405
+
+
 def test_get_user_without_token(client, test_user):
     response = client.get(f"/user/{test_user['id']}")
 
