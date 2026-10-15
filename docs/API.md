@@ -6,6 +6,23 @@ Este documento descreve os endpoints expostos pelo backend atual do Allergy Vali
 
 **OpenAPI/Swagger:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
+## Verificação de saúde
+
+`GET /health`
+
+Endpoint público usado pelo provedor de hospedagem para verificar se a aplicação e a conexão com o banco estão disponíveis. Não retorna credenciais nem dados de usuários.
+
+### Resposta — 200
+
+```json
+{
+  "status": "ok",
+  "database": "ok"
+}
+```
+
+Retorna `503 Service Unavailable` se a conexão com o banco não puder ser estabelecida.
+
 ## Autenticação
 
 Cadastro e login não exigem token. Os demais endpoints listados como protegidos exigem JWT.

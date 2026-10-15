@@ -174,6 +174,7 @@ Os endpoints abaixo refletem os routers atuais do projeto.
 | POST | `/user/allergies/?name={nome}` | Cadastrar alergia | JWT |
 | DELETE | `/user/allergies/{allergy_id}` | Excluir uma alergia própria | JWT |
 | POST | `/validation/` | Validar ingredientes com texto e/ou imagem | JWT |
+| GET | `/health` | Verificar disponibilidade da API e do banco | Não |
 
 Para endpoints protegidos, envie o token no cabeçalho:
 
@@ -241,6 +242,14 @@ api-read-ingredients/
 O backend já contempla cadastro e autenticação, controle de acesso por usuário, gerenciamento individual de alergias e validação por texto/imagem. O frontend de login e validação também foi integrado.
 
 Estado do projeto: fluxos principais foram implementados e testados manualmente; o esquema atual do PostgreSQL foi conferido; migrações Alembic, proteção do contexto Docker e workflow de testes automatizados estão versionados. Próxima etapa: validar o workflow no GitHub, registrar a revisão no banco local existente e concluir a configuração do ambiente de deploy. O Compose deste repositório é para desenvolvimento local, não uma configuração de produção pronta para exposição pública.
+
+## Deploy no Render
+
+O arquivo `render.yaml` prepara um serviço web baseado no Dockerfile. Ao configurar o Blueprint, informe em `DATABASE_URL` a URL de um PostgreSQL externo persistente; a Blueprint não cria um banco de dados nem armazena credenciais no repositório. A chave `JWT_SECRET_KEY` é gerada pelo Render.
+
+O comando de inicialização de produção aplica `alembic upgrade head` antes de iniciar a API. Para um banco de produção novo, isso cria o esquema inicial. Não aponte o serviço para um banco já existente sem conferir e registrar sua revisão Alembic.
+
+A aplicação disponibiliza `GET /health` para validar a conexão ao banco. O serviço gratuito do Render pode entrar em suspensão após inatividade; escolha o plano conforme a necessidade da demonstração. Confira também as condições de persistência e retenção do provedor de PostgreSQL escolhido antes de guardar dados reais.
 
 ## Licença
 

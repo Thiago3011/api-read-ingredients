@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: allergy-validator
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    dockerCommand: 'sh -c ''alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"'''
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRE_MINUTES
+        value: "30"
+      - key: TESSERACT_CMD
+        value: /usr/bin/tesseract

@@ -2,20 +2,21 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.core.config import settings
-from app.database import Base
+from app.database import Base, normalize_database_url
 from app.models import Allergy, User  # noqa: F401 - register models in Base.metadata
 
 
 config = context.config
 # Escape percent signs for ConfigParser. Settings is the single source of truth
 # for the database URL in local, test, and deployed environments.
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
+database_url = normalize_database_url(settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
     context.configure(
-        url=settings.DATABASE_URL,
+        url=database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
