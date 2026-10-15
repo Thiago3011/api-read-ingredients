@@ -9,7 +9,6 @@ services:
     healthCheckPath: /health
     dockerCommand: >-
       sh -c 'python scripts/prepare_database.py && exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"'
-      sh -c 'alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"'
     envVars:
       - key: DATABASE_URL
         sync: false
