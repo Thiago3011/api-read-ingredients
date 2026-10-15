@@ -7,7 +7,8 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health
-    dockerCommand: 'sh -c ''alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"'''
+    dockerCommand: >-
+      sh -c 'alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT"'
     envVars:
       - key: DATABASE_URL
         sync: false
