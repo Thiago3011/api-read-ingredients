@@ -23,5 +23,6 @@ USER app
 
 EXPOSE 8000
 
-# Production-safe default: reload is enabled only by docker-compose.yml for local development.
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port \"${PORT:-8000}\""]
+# Safely prepare or upgrade the database, then start the API.
+# Local Docker Compose overrides this with --reload for development.
+CMD ["sh", "-c", "python scripts/prepare_database.py && exec uvicorn app.main:app --host 0.0.0.0 --port \"\u0024{PORT:-8000}\""]
