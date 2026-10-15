@@ -25,4 +25,4 @@ EXPOSE 8000
 
 # Safely prepare or upgrade the database, then start the API.
 # Local Docker Compose overrides this with --reload for development.
-CMD ["sh", "-c", "python scripts/prepare_database.py && exec uvicorn app.main:app --host 0.0.0.0 --port \"\u0024{PORT:-8000}\""]
+CMD ["sh", "/app/start.sh"]

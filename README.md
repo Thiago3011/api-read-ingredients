@@ -234,6 +234,7 @@ api-read-ingredients/
 ├── scripts/
 │   └── prepare_database.py
 ├── Dockerfile
+├── start.sh
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
@@ -249,7 +250,7 @@ Estado do projeto: fluxos principais foram implementados e testados manualmente;
 
 O arquivo `render.yaml` prepara um serviço web baseado no Dockerfile. Ao configurar o Blueprint, informe em `DATABASE_URL` a URL de um PostgreSQL externo persistente; a Blueprint não cria um banco de dados nem armazena credenciais no repositório. A chave `JWT_SECRET_KEY` é gerada pelo Render.
 
-Antes de iniciar a API, `scripts/prepare_database.py` inspeciona o banco: em um banco novo aplica a migração inicial; em um banco já gerenciado pelo Alembic aplica as migrações pendentes; em um banco legado sem revisão, registra a revisão inicial somente se as tabelas `users` e `allergies`, colunas, índices e chave estrangeira corresponderem exatamente ao esquema antigo conhecido. Se encontrar uma estrutura inesperada, interrompe a inicialização sem tentar recriar tabelas. Faça backup do banco antes de trocar a implantação e confirme a variável `DATABASE_URL` para apontar ao PostgreSQL que deve ser preservado.
+O Dockerfile usa `/app/start.sh` como comando de inicialização: ele chama `scripts/prepare_database.py` e só depois inicia a API. No Render, deixe o campo **Docker Command** vazio para usar o comando padrão da imagem. O preparador aplica a migração inicial em banco vazio; atualiza bancos já gerenciados pelo Alembic; e, em banco legado, registra a revisão inicial somente quando as tabelas `users` e `allergies`, colunas, índices e chave estrangeira correspondem ao esquema antigo conhecido. Se encontrar uma estrutura inesperada, interrompe a inicialização sem tentar recriar tabelas. Faça backup do banco antes de trocar a implantação e confirme a variável `DATABASE_URL` para apontar ao PostgreSQL que deve ser preservado.
 
 A aplicação disponibiliza `GET /health` para validar a conexão ao banco. O serviço gratuito do Render pode entrar em suspensão após inatividade; escolha o plano conforme a necessidade da demonstração. Confira também as condições de persistência e retenção do provedor de PostgreSQL escolhido antes de guardar dados reais.
 
