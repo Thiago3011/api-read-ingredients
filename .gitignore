@@ -66,8 +66,10 @@ instance/
 # PyCharm settings
 .idea/
 
-# Environments
+# Environments and local secrets
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/

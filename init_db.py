@@ -1,14 +1,18 @@
-print("1 - iniciando")
+"""Apply pending database migrations using Alembic.
 
-from app.database import Base, engine
+For a database created before Alembic was introduced, verify that its schema
+matches the initial migration and run ``alembic stamp head`` once before using
+this script. Stamping records the current schema version without changing data.
+"""
 
-print("2 - database importado")
+from alembic import command
+from alembic.config import Config
 
-from app.models.user import User
-from app.models.allergy import Allergy
 
-print("3 - Models importados")
+def main() -> None:
+    alembic_config = Config("alembic.ini")
+    command.upgrade(alembic_config, "head")
 
-Base.metadata.create_all(bind=engine)
 
-print("4 - tabelas criadas!")
+if __name__ == "__main__":
+    main()

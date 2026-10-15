@@ -31,6 +31,7 @@ O Allergy Validator é uma aplicação web desenvolvida para ajudar o usuário a
 | SQLAlchemy | ORM e acesso ao banco |
 | PostgreSQL | Banco de dados |
 | Pydantic / pydantic-settings | Validação de dados e configurações |
+| Alembic | Migrações versionadas do banco de dados |
 | JWT (python-jose) | Tokens de autenticação |
 | pwdlib / Argon2 | Hash de senhas |
 | Tesseract OCR / Pytesseract | Extração de texto de imagens |
@@ -94,40 +95,40 @@ git clone https://github.com/Thiago3011/api-read-ingredients.git
 cd api-read-ingredients
 ```
 
-Crie um arquivo `.env` na raiz. Use valores locais de desenvolvimento e não publique secrets reais:
+Crie um `.env` a partir do modelo e troque `JWT_SECRET_KEY` por um valor aleatório. No PowerShell, execute `Copy-Item .env.example .env` somente se ainda não existir um `.env`; não sobrescreva a configuração de um ambiente em uso. O `.env` não deve ser enviado ao Git.
 
-```env
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/allergy_validator
-JWT_SECRET_KEY=replace-with-a-long-random-secret
-JWT_ALGORITHM=HS256
-JWT_EXPIRE_MINUTES=30
-TESSERACT_CMD=
-```
+O `docker-compose.yml` é destinado ao desenvolvimento local: publica a API e o PostgreSQL somente em `127.0.0.1`, aguarda o healthcheck do banco e ativa `--reload` apenas nesse ambiente. As credenciais padrão são locais e não devem ser reutilizadas em produção. Se o volume `postgres_data` já existe, mantenha os valores `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` compatíveis com a inicialização original do banco; mudar essas variáveis não altera automaticamente um usuário já criado no PostgreSQL.
 
-No Docker Compose, a API acessa o banco pelo hostname interno `postgres`. O `docker-compose.yml` define `DATABASE_URL` e também `TESSERACT_CMD=/usr/bin/tesseract`, que é o caminho do executável dentro do container Linux. Isso evita que um caminho de Tesseract específico do Windows, configurado no `.env` local, seja usado dentro do container. Para executar o Python diretamente no Windows, configure `TESSERACT_CMD` com o caminho do executável instalado nessa máquina. Mantenha `JWT_SECRET_KEY` definido no `.env` local para o ambiente de desenvolvimento e nunca publique uma chave real.
-
-Construa e inicie os serviços:
+Inicie os serviços:
 
 ```bash
 docker compose up -d --build
 ```
 
-Confira os containers:
+Confira o estado e os logs:
 
 ```bash
 docker compose ps
 docker compose logs -f api
 ```
 
-Acesse a aplicação web em [http://localhost:8000](http://localhost:8000) e a documentação interativa em [http://localhost:8000/docs](http://localhost:8000/docs).
+### Preparar o banco com Alembic
 
-Para parar os containers:
+Em um banco novo, aplique a migração inicial depois que os containers estiverem em execução:
 
 ```bash
-docker compose down
+docker compose exec api alembic upgrade head
 ```
 
-O banco usa o volume Docker `postgres_data`, destinado a preservar os dados quando os containers são recriados. Evite usar `docker compose down -v` se quiser manter esse volume.
+Se estiver atualizando um banco local antigo que já possui as tabelas `users` e `allergies`, primeiro confirme que o esquema corresponde à migração inicial. Para o banco existente deste projeto, esse esquema foi conferido. Registre a revisão atual **uma única vez**, sem recriar tabelas nem apagar dados:
+
+```bash
+docker compose exec api alembic stamp head
+```
+
+Depois disso, `docker compose exec api alembic upgrade head` aplica as futuras migrações pendentes. `python init_db.py` executa o mesmo comando de atualização via Alembic. Não use `alembic stamp head` num banco novo.
+
+Acesse a aplicação em [http://localhost:8000](http://localhost:8000) e o Swagger em [http://localhost:8000/docs](http://localhost:8000/docs). Para parar os containers, execute `docker compose down`. O volume nomeado `postgres_data` preserva os dados; não use `docker compose down -v` se quiser mantê-los.
 
 ## Executar localmente sem container da API
 
@@ -202,7 +203,7 @@ Com o ambiente Python e as dependências instaladas:
 pytest -q
 ```
 
-A última execução registrada durante o desenvolvimento foi de **48 testes aprovados e 3 warnings**. Esse número deve ser confirmado novamente após alterações futuras.
+A última execução local registrada foi de **51 testes aprovados e 2 warnings**. A suíte também é executada automaticamente pelo GitHub Actions a cada push para `main` e em pull requests. Confirme o status do workflow após enviar mudanças.
 
 A suíte inclui testes de usuários e autenticação, gerenciamento e isolamento de alergias e regras de validação. Os testes automatizados não substituem a verificação manual do fluxo completo pela interface.
 
@@ -224,6 +225,10 @@ api-read-ingredients/
 ├── static/
 ├── templates/
 ├── tests/
+├── migrations/
+│   ├── env.py
+│   └── versions/
+├── alembic.ini
 ├── init_db.py
 ├── Dockerfile
 ├── docker-compose.yml
@@ -235,13 +240,7 @@ api-read-ingredients/
 
 O backend já contempla cadastro e autenticação, controle de acesso por usuário, gerenciamento individual de alergias e validação por texto/imagem. O frontend de login e validação também foi integrado.
 
-Próximas etapas do projeto:
-- concluir testes manuais do fluxo completo;
-- revisar persistência do banco e reinicialização dos containers;
-- revisar variáveis e configuração de Docker;
-- concluir documentação detalhada da API;
-- fazer revisão final de qualidade e segurança;
-- preparar deploy e demonstração no portfólio.
+Estado do projeto: fluxos principais foram implementados e testados manualmente; o esquema atual do PostgreSQL foi conferido; migrações Alembic, proteção do contexto Docker e workflow de testes automatizados estão versionados. Próxima etapa: validar o workflow no GitHub, registrar a revisão no banco local existente e concluir a configuração do ambiente de deploy. O Compose deste repositório é para desenvolvimento local, não uma configuração de produção pronta para exposição pública.
 
 ## Licença
 

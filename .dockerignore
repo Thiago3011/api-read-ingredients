@@ -1,4 +1,25 @@
-# flyctl launch added from venv\.gitignore
-# Created by venv; see https://docs.python.org/3/library/venv.html
-venv\**\*
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+
+# Version control metadata
+.git
+.gitignore
+
+# Python environments and caches
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local logs and generated artifacts
+*.log
+.DS_Store
+Thumbs.db
 fly.toml
