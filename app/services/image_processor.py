@@ -12,6 +12,9 @@ if settings.TESSERACT_CMD:
 
 pillow_heif.register_heif_opener()
 
+# Load the Portuguese dictionary once per process, not for every image.
+SPELL_CHECKER = SpellChecker(language="pt")
+
 
 class ImageProcessor:
     def __init__(self, image_file):
@@ -83,14 +86,12 @@ class ImageProcessor:
         Corrige o texto extraído pelo OCR utilizando o SpellChecker.
         """
 
-        spell = SpellChecker(language="pt")
-
         words = text.split()
         corrected_words = []
 
         for word in words:
-            if len(word) > 3 and word.lower() not in spell:
-                correction = spell.correction(word)
+            if len(word) > 3 and word.lower() not in SPELL_CHECKER:
+                correction = SPELL_CHECKER.correction(word)
                 corrected_words.append(
                     correction if correction else word
                 )
