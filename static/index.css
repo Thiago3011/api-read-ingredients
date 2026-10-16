@@ -819,33 +819,46 @@ textarea {
 
 .create-allergy-row {
     display: flex;
+    flex-direction: column;
     gap: 9px;
 }
 
-.create-allergy-row input {
-    flex: 1;
-
-    height: 46px;
-
-    padding: 0 14px;
+.create-allergy-row textarea {
+    width: 100%;
+    min-height: 104px;
+    padding: 12px 14px;
 
     border: 1px solid #382940;
     border-radius: 10px;
-
     outline: none;
+    resize: vertical;
 
     background: #0c0c0c;
     color: #fff;
-
     font-size: 14px;
+    line-height: 1.5;
 }
 
-.create-allergy-row input:focus {
+.create-allergy-row textarea::placeholder {
+    color: #666;
+}
+
+.create-allergy-row textarea:focus {
     border-color: #8a2be2;
+}
+
+.allergy-input-hint {
+    margin-top: 2px;
+    color: #858585;
+    font-size: 12px;
+    line-height: 1.5;
 }
 
 .add-allergy-button {
     min-width: 100px;
+    min-height: 44px;
+    padding: 0 18px;
+    align-self: flex-end;
 
     border: 0;
     border-radius: 10px;

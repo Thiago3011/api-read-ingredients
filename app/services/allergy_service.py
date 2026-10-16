@@ -31,6 +31,61 @@ class AllergyService:
             user_id=user_id
         )
 
+    def create_allergies(
+        self,
+        names: list[str],
+        user_id: int
+    ) -> dict:
+        """Create a batch of distinct allergies, skipping duplicates."""
+        cleaned_names = []
+
+        for raw_name in names:
+            name = raw_name.strip().lstrip("•*-–— \\t").strip()
+
+            if not name:
+                continue
+
+            if len(name) > MAX_ALLERGY_NAME_LENGTH:
+                raise ValueError(
+                    f"Cada alergia deve ter no máximo {MAX_ALLERGY_NAME_LENGTH} caracteres. "
+                    "Separe cada item por linha, vírgula ou ponto e vírgula."
+                )
+
+            cleaned_names.append(name)
+
+        if not cleaned_names:
+            raise ValueError("Informe pelo menos uma alergia válida.")
+
+        existing_names = {
+            allergy.name.casefold()
+            for allergy in self.repository.get_all(user_id)
+        }
+        seen_names = set()
+        names_to_create = []
+        skipped_count = 0
+
+        for name in cleaned_names:
+            normalized_name = name.casefold()
+
+            if normalized_name in existing_names or normalized_name in seen_names:
+                skipped_count += 1
+                continue
+
+            seen_names.add(normalized_name)
+            names_to_create.append(name)
+
+        if names_to_create:
+            self.repository.create_many(
+                names=names_to_create,
+                user_id=user_id
+            )
+
+        return {
+            "created_count": len(names_to_create),
+            "skipped_count": skipped_count,
+            "created_names": names_to_create
+        }
+
     def delete_allergy(
         self,
         allergy_id: int,

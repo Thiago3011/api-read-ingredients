@@ -6,6 +6,7 @@ from app.models.user import User
 from app.core.dependencies import get_current_user
 from app.repositories.allergy_repository import AllergyRepository
 from app.services.allergy_service import AllergyService
+from app.schemas.allergy import BulkAllergyCreate
 
 
 router = APIRouter(
@@ -24,6 +25,26 @@ def get_user_allergies(
     return service.get_user_allergies(
         user_id=current_user.id
     )
+
+
+@router.post("/bulk")
+def create_allergies_bulk(
+    payload: BulkAllergyCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    service = AllergyService(AllergyRepository(db))
+
+    try:
+        return service.create_allergies(
+            names=payload.names,
+            user_id=current_user.id
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=422,
+            detail=str(e)
+        ) from e
 
 
 @router.post("/")

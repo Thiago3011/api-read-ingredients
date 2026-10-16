@@ -487,18 +487,17 @@
                 <div class="form-group">
 
                     <label for="new-allergy">
-                        Adicionar alergia
+                        Adicionar alergias
                     </label>
 
                     <div class="create-allergy-row">
 
-                        <input
-                            type="text"
+                        <textarea
                             id="new-allergy"
-                            placeholder="Ex.: amendoim"
+                            rows="4"
+                            placeholder="Ex.: amendoim, cloreto de cobalto"
                             autocomplete="off"
-                            maxlength="255"
-                        >
+                        ></textarea>
 
                         <button
                             type="submit"
@@ -508,6 +507,11 @@
                         </button>
 
                     </div>
+
+                    <p class="allergy-input-hint">
+                        Cole uma alergia por linha ou separe por vírgulas ou ponto e vírgula.
+                        Até 100 por vez; cada item pode ter no máximo 255 caracteres.
+                    </p>
 
                 </div>
 

@@ -44,6 +44,19 @@ class AllergyRepository:
 
         return allergy
 
+    def create_many(
+        self,
+        names: list[str],
+        user_id: int
+    ) -> None:
+        """Persist multiple allergies with a single database commit."""
+        allergies = [
+            Allergy(name=name, user_id=user_id)
+            for name in names
+        ]
+        self.db.add_all(allergies)
+        self.db.commit()
+
     def delete(
         self,
         allergy: Allergy

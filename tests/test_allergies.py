@@ -57,6 +57,73 @@ def test_should_reject_allergy_name_longer_than_255_characters(
     }
 
 
+def test_should_bulk_create_distinct_allergies(
+    client,
+    test_user
+):
+    headers = get_auth_headers(
+        client,
+        test_user["email"]
+    )
+
+    existing_response = client.post(
+        "/user/allergies/",
+        params={"name": "Amendoim"},
+        headers=headers
+    )
+    assert existing_response.status_code == 200
+
+    response = client.post(
+        "/user/allergies/bulk",
+        json={
+            "names": [
+                "Cloreto de cobalto",
+                "Amendoim",
+                " cloreto de cobalto ",
+                "Níquel"
+            ]
+        },
+        headers=headers
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "created_count": 2,
+        "skipped_count": 2,
+        "created_names": ["Cloreto de cobalto", "Níquel"]
+    }
+
+    list_response = client.get(
+        "/user/allergies/",
+        headers=headers
+    )
+    assert list_response.status_code == 200
+    assert {item["name"] for item in list_response.json()} == {
+        "Amendoim",
+        "Cloreto de cobalto",
+        "Níquel"
+    }
+
+
+def test_should_reject_bulk_allergy_name_longer_than_255_characters(
+    client,
+    test_user
+):
+    response = client.post(
+        "/user/allergies/bulk",
+        json={"names": ["A" * 256]},
+        headers=get_auth_headers(client, test_user["email"])
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": (
+            "Cada alergia deve ter no máximo 255 caracteres. "
+            "Separe cada item por linha, vírgula ou ponto e vírgula."
+        )
+    }
+
+
 def test_should_list_only_user_allergies(
     client,
     test_user

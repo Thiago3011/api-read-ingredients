@@ -1260,8 +1260,36 @@ if (createAllergyForm) {
                 return;
             }
 
-            const name =
-                newAllergyInput.value.trim();
+            const rawText = newAllergyInput.value.trim();
+
+            const names = rawText
+                .split(/[\r\n,;]+/)
+                .map(name => name.trim().replace(/^[•*–—-]+\s*/, "").trim())
+                .filter(Boolean);
+
+            if (names.length === 0) {
+                showAllergyMessage(
+                    "Digite uma ou mais alergias.",
+                    true
+                );
+                return;
+            }
+
+            if (names.length > 100) {
+                showAllergyMessage(
+                    "Adicione no máximo 100 alergias por vez.",
+                    true
+                );
+                return;
+            }
+
+            if (names.some(name => name.length > 255)) {
+                showAllergyMessage(
+                    "Cada alergia pode ter no máximo 255 caracteres. Separe os itens por linha, vírgula ou ponto e vírgula.",
+                    true
+                );
+                return;
+            }
 
             if (!name) {
 
@@ -1286,14 +1314,16 @@ if (createAllergyForm) {
 
                 const response =
                     await fetch(
-                        `${API_BASE_URL}/user/allergies/?name=${encodeURIComponent(name)}`,
+                        `${API_BASE_URL}/user/allergies/bulk`,
                         {
                             method: "POST",
 
                             headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json"
+                            },
+
+                            body: JSON.stringify({ names })
                         }
                     );
 
@@ -1307,13 +1337,14 @@ if (createAllergyForm) {
                 }
 
                 const data =
-                    await response.json();
+                    await response.json()
+                        .catch(() => ({}));
 
                 if (!response.ok) {
 
                     showAllergyMessage(
                         data.detail ||
-                        "Não foi possível adicionar a alergia.",
+                        "Não foi possível adicionar as alergias.",
                         true
                     );
 
@@ -1322,9 +1353,24 @@ if (createAllergyForm) {
 
                 newAllergyInput.value = "";
 
-                showAllergyMessage(
-                    "Alergia adicionada com sucesso!"
-                );
+                const createdCount = data.created_count || 0;
+                const skippedCount = data.skipped_count || 0;
+
+                let successMessage;
+
+                if (createdCount === 0) {
+                    successMessage = "Todas essas alergias já estavam cadastradas ou repetidas.";
+                } else {
+                    successMessage = createdCount === 1
+                        ? "1 alergia adicionada com sucesso!"
+                        : `${createdCount} alergias adicionadas com sucesso!`;
+                }
+
+                if (skippedCount > 0) {
+                    successMessage += ` ${skippedCount} repetida(s) ignorada(s).`;
+                }
+
+                showAllergyMessage(successMessage);
 
                 await loadAllergies();
 
