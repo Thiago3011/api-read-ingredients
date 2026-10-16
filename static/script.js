@@ -1291,16 +1291,6 @@ if (createAllergyForm) {
                 return;
             }
 
-            if (!name) {
-
-                showAllergyMessage(
-                    "Digite o nome da alergia.",
-                    true
-                );
-
-                return;
-            }
-
             const submitButton =
                 createAllergyForm.querySelector(
                     "button[type='submit']"
