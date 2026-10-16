@@ -67,19 +67,18 @@ class ImageProcessor:
             total_seconds = perf_counter() - total_started
 
             # Timing and dimensions only: do not log label contents.
-            logger.info(
-                "OCR timing: preprocess=%.3fs tesseract=%.3fs "
-                "spellcheck=%.3fs total=%.3fs "
-                "image=%sx%s processed=%sx%s words=%s",
-                preprocessing_seconds,
-                tesseract_seconds,
-                spellcheck_seconds,
-                total_seconds,
-                original_width,
-                original_height,
-                processed_width,
-                processed_height,
-                len(text.split()),
+            print(
+                (
+                    "OCR timing: "
+                    f"preprocess={preprocessing_seconds:.3f}s "
+                    f"tesseract={tesseract_seconds:.3f}s "
+                    f"spellcheck={spellcheck_seconds:.3f}s "
+                    f"total={total_seconds:.3f}s "
+                    f"image={original_width}x{original_height} "
+                    f"processed={processed_width}x{processed_height} "
+                    f"words={len(text.split())}"
+                ),
+                flush=True,
             )
 
             return corrected_text
