@@ -1,6 +1,9 @@
 from app.repositories.allergy_repository import AllergyRepository
 
 
+MAX_ALLERGY_NAME_LENGTH = 255
+
+
 class AllergyService:
     def __init__(self, repository: AllergyRepository):
         self.repository = repository
@@ -17,6 +20,11 @@ class AllergyService:
 
         if not name:
             raise ValueError("O nome da alergia não pode estar vazio.")
+
+        if len(name) > MAX_ALLERGY_NAME_LENGTH:
+            raise ValueError(
+                f"O nome da alergia deve ter no máximo {MAX_ALLERGY_NAME_LENGTH} caracteres."
+            )
 
         return self.repository.create(
             name=name,
