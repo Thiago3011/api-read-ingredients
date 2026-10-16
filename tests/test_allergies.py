@@ -36,6 +36,27 @@ def test_should_create_allergy(
     assert response.json()["user_id"] == test_user["id"]
 
 
+def test_should_reject_allergy_name_longer_than_255_characters(
+    client,
+    test_user
+):
+    response = client.post(
+        "/user/allergies/",
+        params={
+            "name": "A" * 256
+        },
+        headers=get_auth_headers(
+            client,
+            test_user["email"]
+        )
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": "O nome da alergia deve ter no máximo 255 caracteres."
+    }
+
+
 def test_should_list_only_user_allergies(
     client,
     test_user
