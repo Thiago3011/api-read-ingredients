@@ -977,6 +977,12 @@ if (validationForm) {
                     data.allergies
                 );
 
+                // Clear the selected image after a successful validation.
+                if (image) {
+                    imageInput.value = "";
+                    fileName.textContent = "Nenhuma imagem selecionada";
+                }
+
             } catch (error) {
 
                 console.error(
