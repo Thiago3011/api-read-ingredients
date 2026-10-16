@@ -40,7 +40,7 @@ class AllergyService:
         cleaned_names = []
 
         for raw_name in names:
-            name = raw_name.strip().lstrip("•*-–— \\t").strip()
+            name = raw_name.strip().lstrip("•*-–— ").strip()
 
             if not name:
                 continue
