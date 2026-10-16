@@ -1,4 +1,6 @@
 from io import BytesIO
+import logging
+from time import perf_counter
 
 from PIL import Image as PilImage, ExifTags, ImageFilter, ImageOps
 import pillow_heif
@@ -14,6 +16,7 @@ pillow_heif.register_heif_opener()
 
 # Load the Portuguese dictionary once per process, not for every image.
 SPELL_CHECKER = SpellChecker(language="pt")
+logger = logging.getLogger(__name__)
 
 
 class ImageProcessor:
@@ -22,16 +25,20 @@ class ImageProcessor:
         
     def process_image(self):
         """
-        Processa a imagem e retorna o texto extraído pelo OCR.
+        Processa a imagem e registra o tempo de cada etapa para diagnóstico.
         """
+        total_started = perf_counter()
+
         try:
             self.image_file.seek(0)
 
+            preprocessing_started = perf_counter()
             image = PilImage.open(
                 BytesIO(self.image_file.read())
             )
-
             image = self._correct_orientation(image)
+            original_width, original_height = image.size
+
             image = image.convert("L")
             image.thumbnail((800, 800))
             image = ImageOps.autocontrast(image)
@@ -40,20 +47,48 @@ class ImageProcessor:
             image = image.point(
                 lambda p: 255 if p > threshold else 0
             )
-
             image = image.filter(ImageFilter.SHARPEN)
 
-            custom_config = r"--oem 3 --psm 6"
+            processed_width, processed_height = image.size
+            preprocessing_seconds = perf_counter() - preprocessing_started
 
+            custom_config = r"--oem 3 --psm 6"
+            ocr_started = perf_counter()
             text = pytesseract.image_to_string(
                 image,
                 lang="por",
                 config=custom_config
             )
+            tesseract_seconds = perf_counter() - ocr_started
 
-            return self._correct_text(text)
+            spellcheck_started = perf_counter()
+            corrected_text = self._correct_text(text)
+            spellcheck_seconds = perf_counter() - spellcheck_started
+            total_seconds = perf_counter() - total_started
+
+            # Timing and dimensions only: do not log label contents.
+            logger.info(
+                "OCR timing: preprocess=%.3fs tesseract=%.3fs "
+                "spellcheck=%.3fs total=%.3fs "
+                "image=%sx%s processed=%sx%s words=%s",
+                preprocessing_seconds,
+                tesseract_seconds,
+                spellcheck_seconds,
+                total_seconds,
+                original_width,
+                original_height,
+                processed_width,
+                processed_height,
+                len(text.split()),
+            )
+
+            return corrected_text
 
         except Exception as e:
+            logger.exception(
+                "Image processing failed after %.3fs",
+                perf_counter() - total_started,
+            )
             raise ValueError(
                 f"Não foi possível processar a imagem: {str(e)}"
             ) from e
